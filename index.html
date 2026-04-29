@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA Bons Kdo — v0.1 -->
+<!-- LUMIIA Bons Kdo — v0.2 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -113,6 +113,7 @@ input,textarea,select{font-family:inherit;color:var(--tx);}
   <div class="login-card">
     <div class="login-title">LUMIIA BONS KDO</div>
     <div class="login-sub">Connexion administrateur</div>
+    <div style="text-align:center;font-size:.6rem;color:var(--dim);letter-spacing:.1em;margin-bottom:18px;">v0.2</div>
     <input id="li-email" type="email" placeholder="email" autocomplete="email">
     <input id="li-pass" type="password" placeholder="mot de passe" autocomplete="current-password">
     <button onclick="doLogin()">Se connecter →</button>
@@ -123,7 +124,7 @@ input,textarea,select{font-family:inherit;color:var(--tx);}
 <!-- ── TOPBAR ── -->
 <div id="topbar">
   <span class="tb-logo">🎁 LUMIIA BONS KDO</span>
-  <span class="tb-v">v0.1</span>
+  <span class="tb-v">v0.2</span>
   <div class="tb-tabs">
     <button class="tb-tab active" onclick="setView('events')">📅 Événements</button>
     <button class="tb-tab" onclick="setView('send')">✉️ Envoi</button>
@@ -168,11 +169,13 @@ input,textarea,select{font-family:inherit;color:var(--tx);}
 
 <script>
 const FB_CFG = {
-  apiKey: "AIzaSyB5Y-J4Xb7MlGTlZQRQwH-yBV8N0yJVmXg",
+  apiKey: "AIzaSyBPgjVFKrP80qX_hlfUFqL168XONfNIBA4",
   authDomain: "lumiia-live.firebaseapp.com",
   databaseURL: "https://lumiia-live-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "lumiia-live",
-  storageBucket: "lumiia-live.appspot.com",
+  storageBucket: "lumiia-live.firebasestorage.app",
+  messagingSenderId: "823919513931",
+  appId: "1:823919513931:web:6f6f3c7c6d1699457b18ce"
 };
 firebase.initializeApp(FB_CFG);
 const auth = firebase.auth();
