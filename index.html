@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<!-- LUMIIA Bons Kdo — v0.1 -->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>LUMIIA Bons Kdo</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cosmos:#0b0520;--deep:#05001a;--panel:#140932;
+  --cyan:#4dd9e8;--mag:#d946ef;--violet:#a855f7;--lime:#b8ff3c;
+  --tx:#fff;--soft:#c9c2e8;--dim:#5a5070;--bd:rgba(255,255,255,.08);
+  --ok:#4ade80;--err:#ff6b6b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'Nunito',sans-serif;background:var(--cosmos);color:var(--tx);
+  display:flex;flex-direction:column;
+}
+button{font-family:inherit;}
+input,textarea,select{font-family:inherit;color:var(--tx);}
+
+/* ── TOPBAR ───────────────── */
+#topbar{
+  height:52px;flex-shrink:0;
+  background:linear-gradient(90deg,rgba(5,0,26,.98),rgba(20,9,50,.98));
+  border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;padding:0 18px;gap:14px;
+}
+.tb-logo{
+  font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.18em;
+  background:linear-gradient(135deg,var(--cyan),var(--violet));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.tb-v{font-size:.65rem;color:var(--dim);letter-spacing:.1em;}
+.tb-tabs{display:flex;gap:6px;flex:1;}
+.tb-tab{
+  padding:6px 14px;border:1px solid var(--bd);border-radius:50px;
+  background:transparent;color:var(--soft);font-size:.78rem;font-weight:700;
+  cursor:pointer;transition:all .2s;letter-spacing:.04em;
+}
+.tb-tab:hover{border-color:rgba(168,85,247,.35);color:var(--tx);}
+.tb-tab.active{
+  background:linear-gradient(135deg,rgba(77,217,232,.15),rgba(168,85,247,.15));
+  border-color:rgba(77,217,232,.4);color:var(--cyan);
+}
+.tb-user{font-size:.72rem;color:var(--dim);}
+.tb-btn{
+  padding:6px 14px;border:1px solid var(--bd);border-radius:50px;
+  background:transparent;color:var(--soft);font-size:.7rem;font-weight:700;
+  cursor:pointer;transition:all .2s;
+}
+.tb-btn:hover{border-color:var(--err);color:var(--err);}
+
+/* ── CONTENU ──────────────── */
+#main{flex:1;overflow:auto;padding:24px;position:relative;}
+.view{display:none;animation:fadein .25s both;}
+.view.active{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── ÉCRAN LOGIN ──────────── */
+#login-screen{
+  position:fixed;inset:0;background:var(--cosmos);z-index:1000;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+}
+#login-screen.hide{display:none;}
+.login-card{
+  background:linear-gradient(160deg,var(--panel),var(--cosmos));
+  border:1px solid var(--bd);border-radius:18px;padding:32px;
+  width:100%;max-width:380px;
+}
+.login-title{
+  font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.18em;
+  background:linear-gradient(135deg,var(--cyan),var(--mag));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-align:center;margin-bottom:6px;
+}
+.login-sub{text-align:center;color:var(--dim);font-size:.75rem;margin-bottom:24px;letter-spacing:.05em;}
+.login-card input{
+  width:100%;padding:11px 14px;background:rgba(255,255,255,.04);
+  border:1px solid var(--bd);border-radius:10px;color:var(--tx);
+  font-size:.85rem;margin-bottom:10px;outline:none;
+}
+.login-card input:focus{border-color:var(--cyan);}
+.login-card button{
+  width:100%;padding:12px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,var(--cyan),var(--violet));color:var(--deep);
+  font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.1em;
+  cursor:pointer;margin-top:6px;
+}
+#login-err{font-size:.7rem;color:var(--err);text-align:center;margin-top:8px;min-height:14px;}
+
+/* ── PLACEHOLDERS VUES ────── */
+.placeholder{
+  text-align:center;padding:80px 20px;color:var(--dim);
+}
+.placeholder h2{
+  font-family:'Bebas Neue',sans-serif;font-size:2rem;
+  background:linear-gradient(90deg,var(--cyan),var(--mag));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  letter-spacing:.1em;margin-bottom:14px;
+}
+.placeholder p{font-size:.85rem;line-height:1.6;max-width:440px;margin:0 auto 8px;}
+.placeholder .emoji{font-size:3.5rem;margin-bottom:14px;display:block;}
+</style>
+</head>
+<body>
+
+<!-- ── ÉCRAN DE CONNEXION ── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-title">LUMIIA BONS KDO</div>
+    <div class="login-sub">Connexion administrateur</div>
+    <input id="li-email" type="email" placeholder="email" autocomplete="email">
+    <input id="li-pass" type="password" placeholder="mot de passe" autocomplete="current-password">
+    <button onclick="doLogin()">Se connecter →</button>
+    <div id="login-err"></div>
+  </div>
+</div>
+
+<!-- ── TOPBAR ── -->
+<div id="topbar">
+  <span class="tb-logo">🎁 LUMIIA BONS KDO</span>
+  <span class="tb-v">v0.1</span>
+  <div class="tb-tabs">
+    <button class="tb-tab active" onclick="setView('events')">📅 Événements</button>
+    <button class="tb-tab" onclick="setView('send')">✉️ Envoi</button>
+    <button class="tb-tab" onclick="setView('scan')">📷 Scanner</button>
+  </div>
+  <span class="tb-user" id="tb-user-email"></span>
+  <button class="tb-btn" onclick="doLogout()">Déconnexion</button>
+</div>
+
+<!-- ── MAIN ── -->
+<div id="main">
+  <div class="view active" id="view-events">
+    <div class="placeholder">
+      <span class="emoji">📅</span>
+      <h2>ÉVÉNEMENTS</h2>
+      <p>Crée un événement, configure ton template email + bon PDF, importe ta liste de gagnants.</p>
+      <p style="color:var(--cyan);margin-top:14px;">À implémenter — t5</p>
+    </div>
+  </div>
+  <div class="view" id="view-send">
+    <div class="placeholder">
+      <span class="emoji">✉️</span>
+      <h2>ENVOI</h2>
+      <p>Prévisualise les bons, envoie en masse via Mailjet, suis ouvertures et utilisations en temps réel.</p>
+      <p style="color:var(--cyan);margin-top:14px;">À implémenter — t7</p>
+    </div>
+  </div>
+  <div class="view" id="view-scan">
+    <div class="placeholder">
+      <span class="emoji">📷</span>
+      <h2>SCANNER</h2>
+      <p>Page mobile pour les employés LUMIIA. Scan QR du bon → validation au bar.</p>
+      <p style="color:var(--cyan);margin-top:14px;">À implémenter — t8</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── FIREBASE ── -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<script>
+const FB_CFG = {
+  apiKey: "AIzaSyB5Y-J4Xb7MlGTlZQRQwH-yBV8N0yJVmXg",
+  authDomain: "lumiia-live.firebaseapp.com",
+  databaseURL: "https://lumiia-live-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "lumiia-live",
+  storageBucket: "lumiia-live.appspot.com",
+};
+firebase.initializeApp(FB_CFG);
+const auth = firebase.auth();
+const db = firebase.database();
+
+let currentUser = null;
+
+// ── AUTH ──
+auth.onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user;
+    document.getElementById('login-screen').classList.add('hide');
+    document.getElementById('tb-user-email').textContent = user.email;
+  } else {
+    currentUser = null;
+    document.getElementById('login-screen').classList.remove('hide');
+  }
+});
+
+function doLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const pass = document.getElementById('li-pass').value;
+  document.getElementById('login-err').textContent = '';
+  auth.signInWithEmailAndPassword(email, pass)
+    .catch(e => { document.getElementById('login-err').textContent = '❌ ' + (e.message || 'Erreur'); });
+}
+
+function doLogout() { auth.signOut(); }
+
+// ── NAVIGATION ──
+function setView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tb-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
+  const idx = {events:0, send:1, scan:2}[v] ?? 0;
+  document.querySelectorAll('.tb-tab')[idx]?.classList.add('active');
+}
+
+// Enter key login
+document.getElementById('li-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+
+</body>
+</html>
