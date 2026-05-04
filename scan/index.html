@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA Bons Kdo · Scanner v0.3.2 -->
+<!-- LUMIIA Bons Kdo · Scanner v0.3.3 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -106,34 +106,82 @@
     font-size: 14px;
     line-height: 1.5;
   }
-  .qr-card {
-    margin-top: 18px;
-    padding: 18px;
-    background: rgba(26,26,100,0.4);
-    border: 1px dashed rgba(184,255,60,0.4);
-    border-radius: 16px;
-    text-align: center;
+  /* Bouton flottant QR (toujours visible) */
+  .qr-fab {
+    position: fixed; top: 12px; right: 12px;
+    width: 44px; height: 44px;
+    background: rgba(184,255,60,0.95);
+    color: var(--cosmos);
+    border: none;
+    border-radius: 50%;
+    font-size: 22px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s;
   }
-  .qr-card-label {
-    font-size: 10px;
-    letter-spacing: 1.8px;
+  .qr-fab:active { transform: scale(0.92); }
+
+  /* Modal QR */
+  .qr-modal {
+    position: fixed; inset: 0;
+    background: rgba(5,0,26,0.85);
+    z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .qr-modal-card {
+    background: var(--panel);
+    border: 1px solid rgba(184,255,60,0.4);
+    border-radius: 20px;
+    padding: 28px 24px;
+    text-align: center;
+    max-width: 320px;
+    width: 100%;
+    position: relative;
+  }
+  .qr-modal-close {
+    position: absolute; top: 8px; right: 8px;
+    width: 32px; height: 32px;
+    background: transparent;
+    color: var(--soft);
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  .qr-modal-close:active { background: rgba(255,255,255,0.1); }
+  .qr-modal-label {
+    font-size: 11px;
+    letter-spacing: 2px;
     color: var(--lime);
     font-weight: 700;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
-  .qr-card-img {
+  .qr-modal-img {
     display: inline-block;
     background: #fff;
-    padding: 10px;
-    border-radius: 12px;
+    padding: 12px;
+    border-radius: 14px;
     line-height: 0;
   }
-  .qr-card-img img { display: block; width: 160px; height: 160px; }
-  .qr-card-hint {
-    margin-top: 12px;
+  .qr-modal-img img { display: block; width: 220px; height: 220px; }
+  .qr-modal-hint {
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--soft);
+    line-height: 1.5;
+  }
+  .qr-modal-url {
+    margin-top: 10px;
     font-size: 11px;
     color: var(--dim);
-    line-height: 1.5;
+    word-break: break-all;
+    font-family: 'Courier New', monospace;
   }
   .form-row { margin-bottom: 14px; }
   .form-row label {
@@ -412,9 +460,23 @@
 </style>
 </head>
 <body>
+  <button class="qr-fab" id="qr-fab" aria-label="Afficher le QR code de cette page" title="QR code mobile">📱</button>
+
+  <div class="qr-modal hidden" id="qr-modal">
+    <div class="qr-modal-card">
+      <button class="qr-modal-close" id="qr-modal-close" aria-label="Fermer">✕</button>
+      <div class="qr-modal-label">📱 OUVRIR SUR VOTRE MOBILE</div>
+      <div class="qr-modal-img">
+        <img src="data:image/png;base64,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" alt="QR code" width="220" height="220">
+      </div>
+      <div class="qr-modal-hint">Scannez ce QR avec l'appareil photo de votre téléphone pour ouvrir cette page directement sur mobile.</div>
+      <div class="qr-modal-url">i-immersion.github.io/bons_kdo/scan/</div>
+    </div>
+  </div>
+
   <header>
     <div>
-      <div class="brand-name">LUMIIA <span class="version-badge">v0.3.2</span></div>
+      <div class="brand-name">LUMIIA <span class="version-badge">v0.3.3</span></div>
       <div class="brand-sub">SCANNER · VALIDATION DES BONS</div>
     </div>
     <div class="session-info" id="session-info"></div>
@@ -436,14 +498,6 @@
         </div>
         <div id="login-err" class="error hidden"></div>
         <button class="btn btn-primary" id="btn-login">Se connecter</button>
-      </div>
-
-      <div class="qr-card">
-        <div class="qr-card-label">📱 OUVRIR DEPUIS VOTRE MOBILE</div>
-        <div class="qr-card-img">
-          <img src="data:image/png;base64,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" alt="QR code de la page scanner" width="160" height="160">
-        </div>
-        <div class="qr-card-hint">Scannez ce QR avec l'appareil photo de votre téléphone pour ouvrir cette page directement sur mobile.</div>
       </div>
 
       <p class="legal">Accès réservé au personnel LUMIIA · 1 route de Fontagnal, 26400 Aouste-sur-Sye</p>
@@ -520,6 +574,13 @@
   function showOnly(viewId) {
     ['view-login','view-loading','view-scanner','view-result'].forEach(v => v === viewId ? show(v) : hide(v));
   }
+
+  // ── QR MODAL ────────────────────────────────────────
+  $('qr-fab').onclick = () => $('qr-modal').classList.remove('hidden');
+  $('qr-modal-close').onclick = () => $('qr-modal').classList.add('hidden');
+  $('qr-modal').onclick = (e) => {
+    if (e.target.id === 'qr-modal') $('qr-modal').classList.add('hidden');
+  };
 
   // ── AUTH ────────────────────────────────────────────
   onAuthStateChanged(auth, (user) => {
