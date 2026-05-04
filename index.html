@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA Bons Kdo · App v0.5 -->
+<!-- LUMIIA Bons Kdo · App v0.6 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -176,6 +176,10 @@
   .csv-preview .row-skip{opacity:0.4}
   .csv-row-type-select{background:transparent;border:1px solid var(--bd);border-radius:6px;color:#fff;padding:3px 6px;font-size:11px}
 
+  .event-filter-select{padding:11px 36px 11px 16px;background:rgba(10,10,62,0.7);border:1px solid var(--bd);border-radius:11px;color:#fff;font-size:13px;font-weight:600;min-width:240px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%234dd9e8' d='M6 8L0 0h12z'/></svg>");background-repeat:no-repeat;background-position:right 14px center;-webkit-appearance:none;appearance:none;cursor:pointer}
+  .event-filter-select:hover{border-color:var(--cyan)}
+  .event-filter-select.has-value{border-color:var(--lime);color:var(--lime)}
+  .col-event{color:var(--cyan);font-size:11px;font-weight:700;letter-spacing:0.5px}
   /* RESPONSIVE */
   @media (max-width:768px){
     .topbar{padding:10px 14px;gap:10px;flex-wrap:wrap}
@@ -201,7 +205,7 @@
 <!-- LOGIN ─────────────────────────────────────────── -->
 <div id="login-screen">
   <div class="login-card">
-    <h1>LUMIIA <span class="version-badge">v0.5</span></h1>
+    <h1>LUMIIA <span class="version-badge">v0.6</span></h1>
     <div class="login-sub">BONS CADEAUX · ADMIN</div>
     <div class="form-row">
       <label>Email</label>
@@ -221,11 +225,10 @@
   <header class="topbar">
     <div>
       <span class="brand">LUMIIA</span>
-      <span class="version-badge">v0.5</span>
+      <span class="version-badge">v0.6</span>
     </div>
     <nav class="tabs">
       <button class="tab active" data-view="bons">🎫 Bons cadeaux</button>
-      <button class="tab" data-view="evenements">📅 Événements</button>
       <button class="tab" data-view="scanner-link" onclick="window.open('/bons_kdo/scan/','_blank')">📷 Scanner</button>
     </nav>
     <div class="topbar-spacer"></div>
@@ -241,12 +244,11 @@
     <section id="view-bons">
 
       <div class="event-bar">
-        <select id="event-selector"><option value="">Sélectionner un événement…</option></select>
-        <button class="btn btn-secondary btn-sm" id="btn-new-event">+ Nouvel événement</button>
-        <button class="btn btn-cyan btn-sm" id="btn-import-csv" disabled>📥 Importer CSV</button>
-        <button class="btn btn-mag btn-sm" id="btn-new-bon">+ Créer un bon</button>
+        <button class="btn btn-mag" id="btn-new-bon">+ Créer un bon</button>
+        <button class="btn btn-cyan" id="btn-import-csv">📥 Importer CSV…</button>
+        <button class="btn btn-secondary btn-sm" id="btn-manage-events" title="Gérer les événements">⚙️ Événements</button>
         <div style="flex:1"></div>
-        <button class="btn btn-primary" id="btn-send-all" disabled>✉️ Envoyer tous les bons en attente</button>
+        <button class="btn btn-primary" id="btn-send-all" disabled>✉️ Envoyer en attente</button>
       </div>
 
       <div class="stats-grid" id="stats-grid">
@@ -263,11 +265,16 @@
 
       <div class="toolbar">
         <div class="search-box">
-          <input type="text" id="search-input" placeholder="Rechercher un nom, email, code, lot…">
+          <input type="text" id="search-input" placeholder="Rechercher un nom, email, code, lot, événement…">
         </div>
+        <select id="event-filter" class="event-filter-select">
+          <option value="">Tous les événements</option>
+        </select>
+      </div>
+      <div class="toolbar" style="margin-top:-6px">
         <div class="filter-chips" id="filter-chips">
-          <button class="chip active" data-filter="all">Tous</button>
-          <button class="chip" data-filter="en_attente">En attente</button>
+          <button class="chip" data-filter="all">Tous statuts</button>
+          <button class="chip active" data-filter="en_attente">En attente</button>
           <button class="chip" data-filter="emis">Émis</button>
           <button class="chip" data-filter="utilise">Utilisés</button>
           <button class="chip" data-filter="annule">Annulés</button>
@@ -276,22 +283,28 @@
       </div>
 
       <div class="table-wrap" id="table-wrap">
-        <div class="empty-state" id="empty-bons">
+        <div class="empty-state">
           <div class="icon">🎫</div>
-          <div>Sélectionne un événement pour voir ses bons cadeaux.</div>
+          <div>Aucun bon cadeau pour le moment.<br>Crée le premier ci-dessus, ou importe un CSV.</div>
         </div>
       </div>
 
     </section>
 
-    <!-- VIEW EVENTS ──────────────────────────────── -->
-    <section id="view-evenements" class="hidden">
-      <h2 style="margin:0 0 18px 0;font-size:22px;font-weight:800">📅 Événements</h2>
-      <div id="events-list"></div>
-      <button class="btn btn-primary" id="btn-new-event-2" style="margin-top:18px">+ Créer un événement</button>
-    </section>
-
   </main>
+
+  <!-- MODAL gestion des événements ─────────────────── -->
+  <div class="modal-overlay hidden" id="modal-events-list">
+    <div class="modal" style="max-width:640px">
+      <h2>⚙️ Gérer les événements</h2>
+      <div class="modal-sub">Ajoute, modifie ou consulte tes événements.</div>
+      <div id="events-list" style="margin-top:14px"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btn-close-events-list">Fermer</button>
+        <button class="btn btn-primary" id="btn-new-event-2">+ Nouvel événement</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- DRAWER détail bon ─────────────────────────────── -->
@@ -337,6 +350,10 @@
   <div class="modal" style="max-width:700px">
     <h2>📥 Importer des bons depuis un CSV</h2>
     <div class="modal-sub">Le CSV doit contenir les colonnes : <strong>Nom et Prénom</strong>, <strong>Entreprise</strong>, <strong>Email</strong>, <strong>Lot</strong>. Lignes sans lot ignorées.</div>
+    <div class="form-row">
+      <label>Événement de rattachement *</label>
+      <select id="csv-event-select" style="width:100%;padding:13px 36px 13px 16px;background:rgba(10,10,62,0.7);border:1px solid var(--bd);border-radius:11px;color:#fff;font-size:14px;-webkit-appearance:none;appearance:none;background-image:url(&quot;data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%234dd9e8' d='M6 8L0 0h12z'/></svg>&quot;);background-repeat:no-repeat;background-position:right 14px center"><option value="">— Sélectionner —</option></select>
+    </div>
     <div class="form-row">
       <label>Fichier CSV</label>
       <input type="file" id="csv-file" accept=".csv,text/csv">
@@ -450,8 +467,8 @@
     user: null,
     evenements: {},
     bons: {},
-    currentEventId: null,
-    filter: 'all',
+    eventFilter: '',  // '' = tous événements, sinon ID
+    filter: 'en_attente',  // par défaut : afficher les bons en attente (action requise)
     search: '',
     sortKey: 'created_at',
     sortDir: 'desc',
@@ -495,7 +512,7 @@
   function bindData() {
     onValue(ref(db, 'bons_kdo/evenements'), snap => {
       state.evenements = snap.val() || {};
-      renderEventSelector();
+      renderEventFilter();
       renderEventsList();
     });
     onValue(ref(db, 'bons_kdo/bons'), snap => {
@@ -508,36 +525,35 @@
   document.querySelectorAll('.tab[data-view]').forEach(btn => {
     btn.onclick = () => {
       const view = btn.dataset.view;
-      if (view === 'scanner-link') return; // handled by onclick attr
+      if (view === 'scanner-link') return;
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       btn.classList.add('active');
-      ['view-bons','view-evenements'].forEach(v => hide(v));
-      show('view-' + view);
+      // Une seule view désormais (bons), pas de switch nécessaire
+      show('view-bons');
     };
   });
 
   // ── EVENT SELECTOR ───────────────────────────────
-  function renderEventSelector() {
-    const sel = $('event-selector');
+  function renderEventFilter() {
+    const sel = $('event-filter');
     const events = Object.entries(state.evenements);
     const prevValue = sel.value;
-    sel.innerHTML = '<option value="">Sélectionner un événement…</option>';
+    sel.innerHTML = '<option value="">Tous les événements</option>';
     events.sort((a,b) => (b[1].date || '').localeCompare(a[1].date || ''));
     events.forEach(([id, ev]) => {
+      const count = Object.values(state.bons).filter(b => b.evenement_id === id).length;
       const opt = document.createElement('option');
       opt.value = id;
-      opt.textContent = (ev.nom || id) + (ev.date ? ' · ' + fmtDate(ev.date) : '');
+      opt.textContent = (ev.nom || id) + (ev.date ? ' · ' + fmtDate(ev.date) : '') + ' (' + count + ')';
       sel.appendChild(opt);
     });
-    if (prevValue && state.evenements[prevValue]) {
-      sel.value = prevValue;
-      state.currentEventId = prevValue;
-    } else if (state.currentEventId && state.evenements[state.currentEventId]) {
-      sel.value = state.currentEventId;
-    }
+    if (prevValue && state.evenements[prevValue]) sel.value = prevValue;
+    else sel.value = state.eventFilter;
+    sel.classList.toggle('has-value', !!sel.value);
   }
-  $('event-selector').onchange = (e) => {
-    state.currentEventId = e.target.value || null;
+  $('event-filter').onchange = (e) => {
+    state.eventFilter = e.target.value || '';
+    e.target.classList.toggle('has-value', !!state.eventFilter);
     render();
   };
 
@@ -558,8 +574,9 @@
     }
     show('modal-event');
   }
-  $('btn-new-event').onclick = () => openEventModal();
-  $('btn-new-event-2').onclick = () => openEventModal();
+  $('btn-manage-events').onclick = () => show('modal-events-list');
+  $('btn-close-events-list').onclick = () => hide('modal-events-list');
+  $('btn-new-event-2').onclick = () => { hide('modal-events-list'); openEventModal(); };
   $('btn-cancel-event').onclick = () => hide('modal-event');
   $('btn-save-event').onclick = async () => {
     const nom = $('ev-nom').value.trim();
@@ -577,7 +594,7 @@
       } else {
         const evRef = push(ref(db, 'bons_kdo/evenements'));
         await set(evRef, { ...data, created_at: Date.now(), created_by: state.user.email });
-        state.currentEventId = evRef.key;
+        state.eventFilter = evRef.key;
         toast('Événement créé', 'success');
       }
       hide('modal-event');
@@ -612,11 +629,10 @@
         const id = b.dataset.id;
         if (act === 'edit-ev') openEventModal(id);
         if (act === 'goto-ev') {
-          state.currentEventId = id;
-          $('event-selector').value = id;
-          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-          document.querySelector('.tab[data-view="bons"]').classList.add('active');
-          hide('view-evenements'); show('view-bons');
+          state.eventFilter = id;
+          $('event-filter').value = id;
+          $('event-filter').classList.add('has-value');
+          hide('modal-events-list');
           render();
         }
       };
@@ -625,31 +641,42 @@
 
   // ── RENDER ───────────────────────────────────────
   function render() {
-    const evId = state.currentEventId;
-    $('btn-import-csv').disabled = !evId;
-    $('btn-send-all').disabled = !evId;
-
-    if (!evId) {
-      $('stats-grid').innerHTML = '';
-      hide('progress-card');
-      $('table-wrap').innerHTML = '<div class="empty-state"><div class="icon">🎫</div><div>Sélectionne un événement pour voir ses bons cadeaux.</div></div>';
-      return;
+    // Filtre par événement (peut être vide = tous)
+    let allBons = Object.entries(state.bons)
+      .map(([id,b]) => ({id, ...b}));
+    if (state.eventFilter) {
+      allBons = allBons.filter(b => b.evenement_id === state.eventFilter);
     }
 
-    const allBons = Object.entries(state.bons)
-      .map(([id,b]) => ({id, ...b}))
-      .filter(b => b.evenement_id === evId);
+    // Appliquer aussi recherche + filtre statut pour les compteurs (ils reflètent le filtré)
+    let filteredBons = allBons;
+    if (state.filter !== 'all') {
+      filteredBons = filteredBons.filter(b => effectiveStatus(b) === state.filter);
+    }
+    if (state.search) {
+      const q = state.search.toLowerCase();
+      filteredBons = filteredBons.filter(b => {
+        const ev = state.evenements[b.evenement_id] || {};
+        return (b.nom || '').toLowerCase().includes(q) ||
+          (b.co || '').toLowerCase().includes(q) ||
+          (b.email || '').toLowerCase().includes(q) ||
+          (b.code_unique || '').toLowerCase().includes(q) ||
+          (b.lot || '').toLowerCase().includes(q) ||
+          (ev.nom || '').toLowerCase().includes(q);
+      });
+    }
 
-    renderStats(allBons);
-    renderProgress(allBons);
-    renderTable(allBons);
+    renderStats(filteredBons);
+    renderProgress(filteredBons);
+    renderTable(allBons);  // table re-applique les filtres aussi mais on lui passe la liste pre-event-filter
 
-    // Update bouton envoi
-    const enAttente = allBons.filter(b => effectiveStatus(b) === 'en_attente').length;
-    $('btn-send-all').textContent = enAttente > 0
-      ? `✉️ Envoyer ${enAttente} bon${enAttente > 1 ? 's' : ''} en attente`
-      : '✉️ Tout est envoyé';
-    $('btn-send-all').disabled = enAttente === 0;
+    // Bouton envoi : compte les en_attente parmi le filtré-event uniquement (recherche/statut ne comptent pas)
+    const enAttenteFiltreEv = allBons.filter(b => effectiveStatus(b) === 'en_attente').length;
+    $('btn-send-all').textContent = enAttenteFiltreEv > 0
+      ? `✉️ Envoyer ${enAttenteFiltreEv} en attente`
+      : '✉️ Rien à envoyer';
+    $('btn-send-all').disabled = enAttenteFiltreEv === 0;
+    $('btn-import-csv').disabled = false;  // toujours dispo (la modal CSV demandera l'event)
   }
 
   function renderStats(bons) {
@@ -692,13 +719,15 @@
     }
     if (state.search) {
       const q = state.search.toLowerCase();
-      bons = bons.filter(b =>
-        (b.nom || '').toLowerCase().includes(q) ||
-        (b.co || '').toLowerCase().includes(q) ||
-        (b.email || '').toLowerCase().includes(q) ||
-        (b.code_unique || '').toLowerCase().includes(q) ||
-        (b.lot || '').toLowerCase().includes(q)
-      );
+      bons = bons.filter(b => {
+        const ev = state.evenements[b.evenement_id] || {};
+        return (b.nom || '').toLowerCase().includes(q) ||
+          (b.co || '').toLowerCase().includes(q) ||
+          (b.email || '').toLowerCase().includes(q) ||
+          (b.code_unique || '').toLowerCase().includes(q) ||
+          (b.lot || '').toLowerCase().includes(q) ||
+          (ev.nom || '').toLowerCase().includes(q);
+      });
     }
     bons.sort((a,b) => {
       let va = a[state.sortKey], vb = b[state.sortKey];
@@ -729,6 +758,7 @@
         <thead><tr>
           ${colSort('nom','Nom')}
           <th>Société</th>
+          <th>Événement</th>
           <th>Lot</th>
           <th>Type</th>
           ${colSort('statut','Statut')}
@@ -740,9 +770,12 @@
         <tbody>
           ${bons.map(b => {
             const status = effectiveStatus(b);
+            const ev = state.evenements[b.evenement_id] || {};
+            const evShort = (ev.nom || '—').replace(/\s+\u2014\s+.*$/,'');
             return `<tr data-id="${b.id}">
               <td class="nom-cell">${b.nom || '—'}<div class="co-cell" style="display:none">${b.email || ''}</div></td>
               <td class="co-cell">${b.co || '—'}</td>
+              <td class="col-event" title="${(ev.nom || '').replace(/"/g,'&quot;')}">${evShort}</td>
               <td class="lot-cell" title="${(b.lot||'').replace(/"/g,'&quot;')}">${b.lot || '—'}</td>
               <td><span class="badge ${b.type || 'standard'}">${b.type || 'standard'}</span></td>
               <td><span class="badge ${status}">${statusLabel(status)}</span></td>
@@ -926,20 +959,24 @@
 
   // ── SEND ALL ─────────────────────────────────────
   $('btn-send-all').onclick = () => {
-    const evId = state.currentEventId;
-    if (!evId) return;
-    const enAttente = Object.entries(state.bons)
-      .filter(([_,b]) => b.evenement_id === evId && effectiveStatus({...b}) === 'en_attente');
+    const evId = state.eventFilter;
+    let enAttente = Object.entries(state.bons)
+      .filter(([_,b]) => effectiveStatus({...b}) === 'en_attente');
+    if (evId) enAttente = enAttente.filter(([_,b]) => b.evenement_id === evId);
     if (!enAttente.length) { toast('Aucun bon en attente', 'error'); return; }
-    $('send-all-sub').textContent = `${enAttente.length} bon${enAttente.length > 1 ? 's' : ''} vont être envoyés à leurs destinataires.`;
+    const ctxLabel = evId
+      ? ('événement « ' + (state.evenements[evId]?.nom || '?') + ' »')
+      : 'tous événements confondus';
+    $('send-all-sub').textContent = `${enAttente.length} bon${enAttente.length > 1 ? 's' : ''} vont être envoyés à leurs destinataires (${ctxLabel}).`;
     show('modal-send-all');
   };
   $('btn-cancel-send-all').onclick = () => hide('modal-send-all');
   $('btn-confirm-send-all').onclick = async () => {
     hide('modal-send-all');
-    const evId = state.currentEventId;
-    const enAttente = Object.entries(state.bons)
-      .filter(([_,b]) => b.evenement_id === evId && effectiveStatus({...b}) === 'en_attente');
+    const evId = state.eventFilter;
+    let enAttente = Object.entries(state.bons)
+      .filter(([_,b]) => effectiveStatus({...b}) === 'en_attente');
+    if (evId) enAttente = enAttente.filter(([_,b]) => b.evenement_id === evId);
     const overlay = document.createElement('div');
     overlay.className = 'loading-overlay';
     overlay.innerHTML = '<span class="spinner"></span><span id="send-progress">Envoi 0 / ' + enAttente.length + '</span>';
@@ -948,7 +985,7 @@
     for (let i = 0; i < enAttente.length; i++) {
       const [id, bon] = enAttente[i];
       try {
-        await sendBonEmail({ evenement_id: evId, bon_id: id });
+        await sendBonEmail({ evenement_id: bon.evenement_id, bon_id: id });
         ok++;
       } catch (e) {
         console.error('Send fail for', bon.email, e);
@@ -967,6 +1004,18 @@
     $('csv-file').value = '';
     $('csv-preview-zone').innerHTML = '';
     $('btn-confirm-csv').disabled = true;
+    // Populate event selector
+    const sel = $('csv-event-select');
+    sel.innerHTML = '<option value="">— Sélectionner —</option>';
+    Object.entries(state.evenements)
+      .sort((a,b) => (b[1].date || '').localeCompare(a[1].date || ''))
+      .forEach(([id, ev]) => {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = (ev.nom || id) + (ev.date ? ' · ' + fmtDate(ev.date) : '');
+        sel.appendChild(opt);
+      });
+    if (state.eventFilter && state.evenements[state.eventFilter]) sel.value = state.eventFilter;
     show('modal-csv');
   };
   $('btn-cancel-csv').onclick = () => hide('modal-csv');
@@ -1074,9 +1123,9 @@
         sel.appendChild(opt);
       });
 
-    // Préselection : événement courant si sélectionné
-    if (state.currentEventId && state.evenements[state.currentEventId]) {
-      sel.value = state.currentEventId;
+    // Préselection : événement filtré actuellement si défini
+    if (state.eventFilter && state.evenements[state.eventFilter]) {
+      sel.value = state.eventFilter;
     }
 
     show('modal-bon');
@@ -1173,8 +1222,8 @@
   };
 
   $('btn-confirm-csv').onclick = async () => {
-    const evId = state.currentEventId;
-    if (!evId) return;
+    const evId = $('csv-event-select').value;
+    if (!evId) { toast('Sélectionnez un événement de rattachement', 'error'); return; }
     const ev = state.evenements[evId];
     const toCreate = csvParsedRows.filter(r => r.include);
     if (!toCreate.length) return;
