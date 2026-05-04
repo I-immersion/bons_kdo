@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<!-- LUMIIA Bons Kdo · Scanner v0.1 -->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0a3e">
+<title>Scanner LUMIIA · Validation des bons cadeaux</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --cosmos: #0a0a3e;
+    --deep: #05001a;
+    --panel: #1a1a64;
+    --cyan: #4dd9e8;
+    --mag: #d946ef;
+    --violet: #a855f7;
+    --lime: #b8ff3c;
+    --soft: #c9c2e8;
+    --dim: #9b9bcb;
+    --muted: #5a5a8a;
+    --green: #22c55e;
+    --orange: #f59e0b;
+    --red: #ef4444;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--cosmos);
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+  body {
+    background-image: radial-gradient(circle at 15% 20%, rgba(217,70,239,0.18) 0%, transparent 50%),
+                      radial-gradient(circle at 85% 85%, rgba(77,217,232,0.15) 0%, transparent 50%);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+
+  /* Top bar */
+  header {
+    padding: 16px 20px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid rgba(77,217,232,0.15);
+  }
+  .brand-name {
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: #fff;
+  }
+  .brand-sub {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--lime);
+    margin-top: 2px;
+  }
+  .brand-sub2 { color: var(--mag); }
+  .session-info {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--dim);
+    text-align: right;
+  }
+
+  /* Main content */
+  main {
+    flex: 1;
+    padding: 16px;
+    display: flex; flex-direction: column;
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Login screen */
+  .login-card {
+    background: rgba(26,26,100,0.6);
+    border: 1px solid rgba(77,217,232,0.3);
+    border-radius: 16px;
+    padding: 32px 24px;
+    margin-top: 40px;
+  }
+  .login-card h2 {
+    margin: 0 0 8px 0;
+    font-size: 22px;
+    font-weight: 800;
+  }
+  .login-card p {
+    margin: 0 0 24px 0;
+    color: var(--dim);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .form-row { margin-bottom: 14px; }
+  .form-row label {
+    display: block;
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .form-row input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(10,10,62,0.7);
+    border: 1px solid rgba(77,217,232,0.3);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 16px;  /* iOS no-zoom */
+    font-family: inherit;
+  }
+  .form-row input:focus {
+    outline: none;
+    border-color: var(--cyan);
+  }
+
+  /* Buttons */
+  .btn {
+    display: block; width: 100%;
+    padding: 16px 20px;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.1s, opacity 0.2s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--lime);
+    color: var(--cosmos);
+  }
+  .btn-secondary {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border: 1px solid rgba(77,217,232,0.3);
+  }
+  .btn-danger {
+    background: var(--red);
+    color: #fff;
+  }
+  .btn + .btn { margin-top: 10px; }
+
+  /* Scanner zone */
+  .scan-zone {
+    background: rgba(10,10,62,0.7);
+    border: 1px solid rgba(77,217,232,0.3);
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .scan-zone-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(77,217,232,0.15);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .scan-zone-title {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--cyan);
+    font-weight: 700;
+  }
+  .scan-zone-body {
+    position: relative;
+    aspect-ratio: 1;
+    background: #000;
+  }
+  #qr-reader {
+    width: 100%; height: 100%;
+    background: #000;
+  }
+  #qr-reader video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+  }
+  /* Cacher tous les controls par defaut de html5-qrcode */
+  #qr-reader__dashboard,
+  #qr-reader__camera_selection,
+  #qr-reader__filescan_input,
+  #qr-reader__dashboard_section_csr,
+  #qr-reader__dashboard_section_swaplink,
+  #qr-reader__status_span,
+  #qr-reader__header_message {
+    display: none !important;
+  }
+  /* Overlay viseur */
+  .scan-overlay {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .scan-frame {
+    width: 65%; height: 65%;
+    border: 3px solid var(--lime);
+    border-radius: 16px;
+    position: relative;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .scan-frame::before, .scan-frame::after {
+    content: '';
+    position: absolute; width: 30px; height: 30px;
+    border: 4px solid var(--lime);
+  }
+  .scan-frame::before { top: -4px; left: -4px; border-right: none; border-bottom: none; border-radius: 14px 0 0 0; }
+  .scan-frame::after { bottom: -4px; right: -4px; border-left: none; border-top: none; border-radius: 0 0 14px 0; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(184,255,60,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(184,255,60,0); }
+  }
+
+  /* Manual input */
+  .manual-input {
+    margin-top: 12px;
+    padding: 14px;
+    background: rgba(10,10,62,0.5);
+    border-radius: 14px;
+    border: 1px solid rgba(77,217,232,0.2);
+  }
+  .manual-input label {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--dim);
+    text-transform: uppercase;
+    display: block; margin-bottom: 8px;
+  }
+  .manual-input-row {
+    display: flex; gap: 8px;
+  }
+  .manual-input input {
+    flex: 1;
+    padding: 12px 14px;
+    background: rgba(10,10,62,0.7);
+    border: 1px solid rgba(77,217,232,0.3);
+    border-radius: 10px;
+    color: var(--lime);
+    font-size: 18px;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .manual-input input::placeholder {
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+  .manual-input input:focus {
+    outline: none;
+    border-color: var(--lime);
+  }
+  .manual-input button {
+    padding: 0 20px;
+    background: var(--lime);
+    color: var(--cosmos);
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: inherit;
+  }
+
+  /* Result screen */
+  .result-card {
+    border-radius: 18px;
+    padding: 28px 24px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .result-card.valide {
+    background: linear-gradient(135deg, rgba(34,197,94,0.18), rgba(184,255,60,0.12));
+    border: 2px solid var(--green);
+  }
+  .result-card.deja_utilise {
+    background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(245,158,11,0.05));
+    border: 2px solid var(--orange);
+  }
+  .result-card.inconnu {
+    background: linear-gradient(135deg, rgba(239,68,68,0.18), rgba(239,68,68,0.05));
+    border: 2px solid var(--red);
+  }
+  .result-icon {
+    font-size: 64px;
+    margin-bottom: 12px;
+  }
+  .result-status {
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .result-card.valide .result-status { color: var(--lime); }
+  .result-card.deja_utilise .result-status { color: var(--orange); }
+  .result-card.inconnu .result-status { color: var(--red); }
+  .result-title {
+    font-size: 24px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+  .result-co {
+    font-size: 14px;
+    color: var(--soft);
+    font-style: italic;
+    margin-bottom: 18px;
+  }
+  .result-lot-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    margin-top: 14px;
+    margin-bottom: 6px;
+  }
+  .result-lot {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+    padding: 14px 16px;
+    background: rgba(10,10,62,0.5);
+    border-radius: 12px;
+  }
+  .result-meta {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 12px;
+    color: var(--dim);
+  }
+
+  /* Error / loading */
+  .error {
+    padding: 14px 18px;
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.4);
+    border-radius: 12px;
+    color: var(--red);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--dim);
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid rgba(77,217,232,0.2);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Hidden by default */
+  .hidden { display: none !important; }
+
+  .legal {
+    font-size: 11px; color: var(--muted);
+    text-align: center;
+    padding: 16px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="brand-name">LUMIIA</div>
+      <div class="brand-sub">SCANNER · VALIDATION DES BONS</div>
+    </div>
+    <div class="session-info" id="session-info"></div>
+  </header>
+
+  <main>
+    <!-- LOGIN -->
+    <div id="view-login" class="hidden">
+      <div class="login-card">
+        <h2>Authentification staff</h2>
+        <p>Connectez-vous avec votre compte LUMIIA pour scanner et valider les bons cadeaux à l'accueil.</p>
+        <div class="form-row">
+          <label>Email</label>
+          <input type="email" id="li-email" autocomplete="email" autocapitalize="off" autocorrect="off">
+        </div>
+        <div class="form-row">
+          <label>Mot de passe</label>
+          <input type="password" id="li-pass" autocomplete="current-password">
+        </div>
+        <div id="login-err" class="error hidden"></div>
+        <button class="btn btn-primary" id="btn-login">Se connecter</button>
+      </div>
+      <p class="legal">Accès réservé au personnel LUMIIA.<br>1 route de Fontagnal, 26400 Aouste-sur-Sye</p>
+    </div>
+
+    <!-- LOADING (entre login et scanner) -->
+    <div id="view-loading" class="loading">
+      <div class="spinner"></div>
+      <div>Initialisation…</div>
+    </div>
+
+    <!-- SCANNER -->
+    <div id="view-scanner" class="hidden">
+      <div class="scan-zone">
+        <div class="scan-zone-header">
+          <div class="scan-zone-title">📷 SCAN DU QR CODE</div>
+          <button id="btn-flash" class="btn-secondary" style="padding:6px 12px;font-size:12px;border-radius:8px;display:none;">💡</button>
+        </div>
+        <div class="scan-zone-body">
+          <div id="qr-reader"></div>
+          <div class="scan-overlay"><div class="scan-frame"></div></div>
+        </div>
+      </div>
+
+      <div class="manual-input">
+        <label>OU SAISIR LE CODE MANUELLEMENT</label>
+        <div class="manual-input-row">
+          <input type="text" id="manual-code" placeholder="XXXXXXXX" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="characters" inputmode="latin-prose">
+          <button id="btn-manual-validate">OK</button>
+        </div>
+      </div>
+
+      <p class="legal">Pointez la caméra sur le QR code du bon cadeau, ou saisissez le code à 8 caractères.</p>
+    </div>
+
+    <!-- RESULT -->
+    <div id="view-result" class="hidden">
+      <div class="result-card" id="result-card">
+        <div class="result-icon" id="result-icon">✅</div>
+        <div class="result-status" id="result-status">BON VALIDÉ</div>
+        <div class="result-title" id="result-title">—</div>
+        <div class="result-co" id="result-co"></div>
+        <div class="result-lot-label">LOT</div>
+        <div class="result-lot" id="result-lot">—</div>
+        <div class="result-meta hidden" id="result-meta"></div>
+      </div>
+      <button class="btn btn-primary" id="btn-next">📷 Scanner un autre bon</button>
+    </div>
+  </main>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBPgjVFKrP80qX_jXM86bBzBDaXtKt0_Wo",
+    authDomain: "lumiia-live.firebaseapp.com",
+    databaseURL: "https://lumiia-live-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "lumiia-live",
+    storageBucket: "lumiia-live.firebasestorage.app",
+    messagingSenderId: "823919513931",
+    appId: "1:823919513931:web:bb8f3a5e3b6b26b8a7e9e6"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const functions = getFunctions(app, 'europe-west1');
+  const validerBon = httpsCallable(functions, 'validerBon');
+
+  const $ = (id) => document.getElementById(id);
+  const show = (id) => $(id).classList.remove('hidden');
+  const hide = (id) => $(id).classList.add('hidden');
+  function showOnly(viewId) {
+    ['view-login','view-loading','view-scanner','view-result'].forEach(v => v === viewId ? show(v) : hide(v));
+  }
+
+  // ── AUTH ────────────────────────────────────────────
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      $('session-info').innerHTML = user.email + '<br><a href="#" id="btn-logout" style="color:var(--mag);text-decoration:none;font-size:10px;">Déconnexion</a>';
+      $('btn-logout').onclick = (e) => { e.preventDefault(); signOut(auth); };
+      initScanner();
+    } else {
+      stopScanner();
+      showOnly('view-login');
+    }
+  });
+
+  $('btn-login').onclick = async () => {
+    const email = $('li-email').value.trim();
+    const pass = $('li-pass').value;
+    if (!email || !pass) return;
+    hide('login-err');
+    $('btn-login').disabled = true;
+    $('btn-login').textContent = 'Connexion…';
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch(e) {
+      $('login-err').textContent = 'Identifiants incorrects';
+      show('login-err');
+    } finally {
+      $('btn-login').disabled = false;
+      $('btn-login').textContent = 'Se connecter';
+    }
+  };
+  $('li-pass').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') $('btn-login').click();
+  });
+
+  // ── SCANNER ─────────────────────────────────────────
+  let html5QrCode = null;
+  let scanning = false;
+
+  async function initScanner() {
+    showOnly('view-loading');
+    // Load html5-qrcode lib
+    if (!window.Html5Qrcode) {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+        s.onload = res;
+        s.onerror = rej;
+        document.head.appendChild(s);
+      }).catch(() => {
+        $('view-loading').innerHTML = '<div class="error">Impossible de charger le scanner. Vérifiez votre connexion.</div>';
+        return;
+      });
+    }
+
+    showOnly('view-scanner');
+
+    // Si un code est dans l'URL (depuis QR scan natif), on valide direct
+    const urlCode = new URLSearchParams(location.search).get('code');
+    if (urlCode && /^[A-Z0-9]{8}$/.test(urlCode)) {
+      processCode(urlCode);
+      // Nettoyer URL pour eviter re-validation au refresh
+      history.replaceState(null, '', location.pathname);
+      return;
+    }
+
+    await startCamera();
+  }
+
+  async function startCamera() {
+    if (scanning) return;
+    try {
+      html5QrCode = new Html5Qrcode('qr-reader');
+      await html5QrCode.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 240, height: 240 } },
+        onQRDetected,
+        () => {} // ignore scan failures
+      );
+      scanning = true;
+    } catch(e) {
+      console.error('Camera error:', e);
+      // Camera bloquée, on garde la saisie manuelle
+    }
+  }
+
+  function stopScanner() {
+    if (html5QrCode && scanning) {
+      try { html5QrCode.stop(); } catch(e) {}
+    }
+    scanning = false;
+    html5QrCode = null;
+  }
+
+  function onQRDetected(decodedText) {
+    // Le QR contient une URL : https://i-immersion.github.io/bons_kdo/scan?code=XXX
+    // ou directement le code
+    let code = decodedText.trim();
+    const m = code.match(/code=([A-Z0-9]{8})/);
+    if (m) code = m[1];
+    if (!/^[A-Z0-9]{8}$/.test(code)) {
+      // QR contient autre chose, on ignore
+      return;
+    }
+    processCode(code);
+  }
+
+  $('btn-manual-validate').onclick = () => {
+    const code = $('manual-code').value.trim().toUpperCase();
+    if (!/^[A-Z0-9]{8}$/.test(code)) {
+      alert('Le code doit faire 8 caractères (lettres + chiffres)');
+      return;
+    }
+    processCode(code);
+  };
+  $('manual-code').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') $('btn-manual-validate').click();
+  });
+  $('manual-code').addEventListener('input', (e) => {
+    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  });
+
+  // ── VALIDATION ──────────────────────────────────────
+  async function processCode(code) {
+    stopScanner();
+    showOnly('view-loading');
+    try {
+      const r = await validerBon({ code_unique: code });
+      displayResult(r.data, code);
+    } catch(e) {
+      console.error(e);
+      $('view-loading').innerHTML = `<div class="error">Erreur : ${e.message}</div>
+        <button class="btn btn-secondary" onclick="location.reload()">Réessayer</button>`;
+    }
+  }
+
+  function displayResult(data, code) {
+    const card = $('result-card');
+    const icon = $('result-icon');
+    const status = $('result-status');
+    const title = $('result-title');
+    const coEl = $('result-co');
+    const lotEl = $('result-lot');
+    const metaEl = $('result-meta');
+
+    card.className = 'result-card ' + data.status;
+
+    if (data.status === 'valide') {
+      icon.textContent = '✅';
+      status.textContent = '✓ BON VALIDÉ';
+      title.textContent = data.nom || '—';
+      coEl.textContent = data.co || '';
+      lotEl.textContent = data.lot || '';
+      metaEl.textContent = 'Validé le ' + new Date().toLocaleString('fr-FR');
+      show('result-meta');
+    } else if (data.status === 'deja_utilise') {
+      icon.textContent = '⚠️';
+      status.textContent = 'BON DÉJÀ UTILISÉ';
+      title.textContent = data.nom || '—';
+      coEl.textContent = data.co || '';
+      lotEl.textContent = data.lot || '';
+      const utiliseAt = data.utilise_at ? new Date(data.utilise_at).toLocaleString('fr-FR') : '—';
+      metaEl.textContent = 'Utilisé le ' + utiliseAt;
+      show('result-meta');
+    } else { // inconnu
+      icon.textContent = '❌';
+      status.textContent = 'CODE INCONNU';
+      title.textContent = code;
+      coEl.textContent = '';
+      lotEl.textContent = "Ce code ne correspond à aucun bon cadeau.";
+      hide('result-meta');
+    }
+
+    showOnly('view-result');
+  }
+
+  $('btn-next').onclick = () => {
+    $('manual-code').value = '';
+    initScanner();
+  };
+</script>
+</body>
+</html>
