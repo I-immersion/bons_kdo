@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA Bons Kdo · Scanner v0.3.3 -->
+<!-- LUMIIA Bons Kdo · Scanner v0.3.4 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -108,21 +108,27 @@
   }
   /* Bouton flottant QR (toujours visible) */
   .qr-fab {
-    position: fixed; top: 12px; right: 12px;
-    width: 44px; height: 44px;
+    position: fixed; bottom: 16px; right: 16px;
+    width: 52px; height: 52px;
     background: rgba(184,255,60,0.95);
     color: var(--cosmos);
     border: none;
     border-radius: 50%;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 900;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(184,255,60,0.15);
     z-index: 100;
     display: flex; align-items: center; justify-content: center;
     transition: transform 0.15s;
   }
   .qr-fab:active { transform: scale(0.92); }
+  .qr-fab:hover { transform: scale(1.05); }
+  /* Desktop : cacher la camera, montrer juste la saisie manuelle */
+  @media (hover: hover) and (pointer: fine) {
+    .desktop-hide { display: none !important; }
+    .desktop-only-msg { display: block !important; }
+  }
 
   /* Modal QR */
   .qr-modal {
@@ -476,7 +482,7 @@
 
   <header>
     <div>
-      <div class="brand-name">LUMIIA <span class="version-badge">v0.3.3</span></div>
+      <div class="brand-name">LUMIIA <span class="version-badge">v0.3.4</span></div>
       <div class="brand-sub">SCANNER · VALIDATION DES BONS</div>
     </div>
     <div class="session-info" id="session-info"></div>
@@ -511,7 +517,7 @@
 
     <!-- SCANNER -->
     <div id="view-scanner" class="hidden">
-      <div class="scan-zone">
+      <div class="scan-zone desktop-hide">
         <div class="scan-zone-header">
           <div class="scan-zone-title">📷 SCAN DU QR CODE</div>
           <button id="btn-flash" class="btn-secondary" style="padding:6px 12px;font-size:12px;border-radius:8px;display:none;">💡</button>
@@ -520,6 +526,11 @@
           <div id="qr-reader"></div>
           <div class="scan-overlay"><div class="scan-frame"></div></div>
         </div>
+      </div>
+
+      <div class="desktop-only-msg" style="display:none;padding:20px;background:rgba(26,26,100,0.4);border:1px dashed rgba(77,217,232,0.4);border-radius:14px;margin-bottom:16px;text-align:center;">
+        <div style="font-size:24px;margin-bottom:8px;">💻</div>
+        <div style="font-size:13px;color:var(--soft);line-height:1.5;">Sur ordinateur, utilisez la <strong style="color:var(--lime);">saisie manuelle</strong> ci-dessous, ou ouvrez cette page sur mobile via le bouton 📱 en bas à droite.</div>
       </div>
 
       <div class="manual-input">
@@ -641,12 +652,15 @@
     const urlCode = new URLSearchParams(location.search).get('code');
     if (urlCode && /^[A-Z0-9]{8}$/.test(urlCode)) {
       processCode(urlCode);
-      // Nettoyer URL pour eviter re-validation au refresh
       history.replaceState(null, '', location.pathname);
       return;
     }
 
-    await startCamera();
+    // Sur desktop, on skip la camera (l'usage attendu est mobile)
+    const isDesktop = matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (!isDesktop) {
+      await startCamera();
+    }
   }
 
   async function startCamera() {
