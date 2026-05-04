@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA Bons Kdo · App v0.7 -->
+<!-- LUMIIA Bons Kdo · App v0.8 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -80,6 +80,19 @@
   .stat-card.utilise{--accent:var(--lime)}
   .stat-card.expire{--accent:var(--orange)}
   .stat-card.annule{--accent:var(--red)}
+  .stat-card.opened{--accent:var(--violet)}
+  .stat-card.clicked{--accent:var(--mag)}
+  .stat-card.bounced{--accent:var(--red)}
+
+  /* Activité column */
+  .activity-cell{font-size:13px;letter-spacing:1px;white-space:nowrap}
+  .activity-icon{display:inline-block;margin-right:2px}
+  .activity-icon.opened{color:var(--violet)}
+  .activity-icon.clicked{color:var(--mag)}
+  .activity-icon.bounced{color:var(--red)}
+  .activity-icon.delivered{color:var(--cyan)}
+  .activity-empty{color:var(--muted);font-size:11px;font-style:italic}
+
   .stat-label{font-size:10px;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;font-weight:700}
   .stat-value{font-size:30px;font-weight:900;color:#fff;margin-top:4px;line-height:1}
   .stat-pct{font-size:11px;color:var(--accent,var(--cyan));margin-top:6px;font-weight:600}
@@ -226,7 +239,7 @@
 <!-- LOGIN ─────────────────────────────────────────── -->
 <div id="login-screen">
   <div class="login-card">
-    <h1>LUMIIA <span class="version-badge">v0.7</span></h1>
+    <h1>LUMIIA <span class="version-badge">v0.8</span></h1>
     <div class="login-sub">BONS CADEAUX · ADMIN</div>
     <div class="form-row">
       <label>Email</label>
@@ -246,7 +259,7 @@
   <header class="topbar">
     <div>
       <span class="brand">LUMIIA</span>
-      <span class="version-badge">v0.7</span>
+      <span class="version-badge">v0.8</span>
     </div>
     <nav class="tabs">
       <button class="tab active" data-view="bons">🎫 Bons cadeaux</button>
@@ -269,6 +282,7 @@
         <button class="btn btn-cyan" id="btn-import-csv">📥 Importer CSV…</button>
         <button class="btn btn-secondary btn-sm" id="btn-manage-events" title="Gérer les événements">⚙️ Événements</button>
         <div style="flex:1"></div>
+        <button class="btn btn-secondary btn-sm" id="btn-refresh-stats" title="Récupérer les ouvertures et clics depuis Mailjet">🔄 Stats Mailjet</button>
         <button class="btn btn-primary" id="btn-send-all" disabled>✉️ Envoyer en attente</button>
       </div>
 
@@ -423,6 +437,7 @@
   const db = getDatabase(app);
   const functions = getFunctions(app, 'europe-west1');
   const sendBonEmail = httpsCallable(functions, 'sendBonEmail');
+  const getMailjetStats = httpsCallable(functions, 'getMailjetStats');
 
   // ── HELPERS ──────────────────────────────────────
   const $ = (id) => document.getElementById(id);
@@ -703,15 +718,35 @@
   function renderStats(bons) {
     const counts = { total:bons.length, en_attente:0, emis:0, utilise:0, annule:0, expire:0 };
     bons.forEach(b => { counts[effectiveStatus(b)] = (counts[effectiveStatus(b)] || 0) + 1; });
+    // Stats Mailjet (uniquement bons avec stats)
+    const withStats = bons.filter(b => b.mailjet_stats);
+    const opened = withStats.filter(b => b.mailjet_stats.opens > 0).length;
+    const clicked = withStats.filter(b => b.mailjet_stats.clicks > 0).length;
+    const bounced = withStats.filter(b => b.mailjet_stats.bounced_at).length;
+
     const pct = (n) => bons.length > 0 ? Math.round(100 * n / bons.length) + '%' : '—';
-    $('stats-grid').innerHTML = `
+    const pctSent = (n) => counts.emis + counts.utilise > 0 ? Math.round(100 * n / (counts.emis + counts.utilise)) + '%' : '—';
+
+    let html = `
       <div class="stat-card total"><div class="stat-label">Total</div><div class="stat-value">${counts.total}</div></div>
       <div class="stat-card attente"><div class="stat-label">En attente</div><div class="stat-value">${counts.en_attente}</div><div class="stat-pct">${pct(counts.en_attente)}</div></div>
-      <div class="stat-card emis"><div class="stat-label">Émis</div><div class="stat-value">${counts.emis}</div><div class="stat-pct">${pct(counts.emis)}</div></div>
-      <div class="stat-card utilise"><div class="stat-label">Utilisés</div><div class="stat-value">${counts.utilise}</div><div class="stat-pct">${pct(counts.utilise)}</div></div>
-      <div class="stat-card expire"><div class="stat-label">Expirés</div><div class="stat-value">${counts.expire}</div><div class="stat-pct">${pct(counts.expire)}</div></div>
-      <div class="stat-card annule"><div class="stat-label">Annulés</div><div class="stat-value">${counts.annule}</div><div class="stat-pct">${pct(counts.annule)}</div></div>
-    `;
+      <div class="stat-card emis"><div class="stat-label">Émis</div><div class="stat-value">${counts.emis}</div><div class="stat-pct">${pct(counts.emis)}</div></div>`;
+
+    // Cards Mailjet : montrer si on a au moins quelques stats (sinon ça pollue)
+    if (withStats.length > 0) {
+      html += `
+      <div class="stat-card opened"><div class="stat-label">Ouverts</div><div class="stat-value">${opened}</div><div class="stat-pct">${pctSent(opened)} des envoyés</div></div>
+      <div class="stat-card clicked"><div class="stat-label">Cliqués</div><div class="stat-value">${clicked}</div><div class="stat-pct">${pctSent(clicked)} des envoyés</div></div>`;
+    }
+
+    html += `
+      <div class="stat-card utilise"><div class="stat-label">Utilisés</div><div class="stat-value">${counts.utilise}</div><div class="stat-pct">${pct(counts.utilise)}</div></div>`;
+
+    if (counts.annule > 0) html += `<div class="stat-card annule"><div class="stat-label">Annulés</div><div class="stat-value">${counts.annule}</div><div class="stat-pct">${pct(counts.annule)}</div></div>`;
+    if (counts.expire > 0) html += `<div class="stat-card expire"><div class="stat-label">Expirés</div><div class="stat-value">${counts.expire}</div><div class="stat-pct">${pct(counts.expire)}</div></div>`;
+    if (bounced > 0) html += `<div class="stat-card bounced"><div class="stat-label">Bounces</div><div class="stat-value">${bounced}</div><div class="stat-pct">⚠️ rebonds</div></div>`;
+
+    $('stats-grid').innerHTML = html;
   }
 
   function renderProgress(bons) {
@@ -783,6 +818,7 @@
           <th>Lot</th>
           <th>Type</th>
           ${colSort('statut','Statut')}
+          <th title="Activité du mail Mailjet">📧 Activité</th>
           <th>Code</th>
           ${colSort('emis_at','Envoyé')}
           ${colSort('date_validite','Validité')}
@@ -793,6 +829,12 @@
             const status = effectiveStatus(b);
             const ev = state.evenements[b.evenement_id] || {};
             const evShort = (ev.nom || '—').replace(/\s+\u2014\s+.*$/,'');
+            const ms = b.mailjet_stats || {};
+            const activityHtml = (ms.opened_at || ms.clicked_at || ms.bounced_at)
+              ? `<span class="activity-cell">${ms.opened_at ? `<span class="activity-icon opened" title="Ouvert ${fmtDateTime(ms.opened_at)}, ${ms.opens || 1}×">👁</span>` : ''}${ms.clicked_at ? `<span class="activity-icon clicked" title="Cliqué ${fmtDateTime(ms.clicked_at)}, ${ms.clicks || 1}×">🖱</span>` : ''}${ms.bounced_at ? `<span class="activity-icon bounced" title="Bounce : ${ms.bounce_reason || '?'}">⚠️</span>` : ''}</span>`
+              : (b.statut === 'emis' || b.statut === 'utilise')
+                ? '<span class="activity-empty">Pas ouvert</span>'
+                : '<span class="activity-empty">—</span>';
             return `<tr data-id="${b.id}">
               <td class="nom-cell">${b.nom || '—'}<div class="co-cell" style="display:none">${b.email || ''}</div></td>
               <td class="co-cell">${b.co || '—'}</td>
@@ -800,6 +842,7 @@
               <td class="lot-cell" title="${(b.lot||'').replace(/"/g,'&quot;')}">${b.lot || '—'}</td>
               <td><span class="badge ${b.type || 'standard'}">${b.type || 'standard'}</span></td>
               <td><span class="badge ${status}">${statusLabel(status)}</span></td>
+              <td>${activityHtml}</td>
               <td class="code-cell">${b.code_unique || '—'}</td>
               <td class="date-cell">${b.emis_at ? fmtDateTime(b.emis_at) : '—'}</td>
               <td class="date-cell">${fmtDate(b.date_validite)}</td>
@@ -904,6 +947,11 @@
         </div>
       </div>
 
+      ${bon.mailjet_id ? `<div class="drawer-section">
+        <div class="drawer-section-title">📧 Activité du mail (Mailjet)</div>
+        ${renderMailjetActivity(bon)}
+      </div>` : ''}
+
       <div class="drawer-actions">
         <button class="btn btn-primary" id="d-save">💾 Enregistrer</button>
         ${status !== 'utilise' && status !== 'annule' ? `<button class="btn btn-cyan" id="d-send">${bon.statut === 'emis' ? '📧 Renvoyer le mail' : '✉️ Envoyer le mail'}</button>` : ''}
@@ -946,6 +994,39 @@
     events.sort((a,b) => a.ts - b.ts);
     if (!events.length) return '<div class="history-line">Aucune activité enregistrée.</div>';
     return events.map(e => `<div class="history-line"><span style="color:var(--soft);font-family:monospace">${fmtDateTime(e.ts)}</span> · ${e.txt}</div>`).join('');
+  }
+
+  function renderMailjetActivity(bon) {
+    const ms = bon.mailjet_stats;
+    if (!ms) return `<div class="drawer-meta" style="display:flex;align-items:center;gap:10px;color:var(--dim)">
+        <span style="font-size:14px">⏳</span>
+        <span>Aucune donnée. Clique <strong style="color:var(--lime)">🔄 Stats Mailjet</strong> en haut pour rafraîchir.</span>
+      </div>`;
+
+    const items = [];
+    if (ms.sent_at) items.push({ts:ms.sent_at, icon:'📤', label:'Envoyé', color:'var(--cyan)'});
+    if (ms.delivered_at) items.push({ts:ms.delivered_at, icon:'✓', label:'Délivré', color:'var(--cyan)'});
+    if (ms.opened_at) items.push({ts:ms.opened_at, icon:'👁', label:`Ouvert (${ms.opens || 1}×)`, color:'var(--violet)'});
+    if (ms.clicked_at) items.push({ts:ms.clicked_at, icon:'🖱', label:`Cliqué (${ms.clicks || 1}×)`, color:'var(--mag)'});
+    if (ms.bounced_at) items.push({ts:ms.bounced_at, icon:'⚠️', label:`Rebond : ${ms.bounce_reason || '?'}`, color:'var(--red)'});
+    if (ms.spam_at) items.push({ts:ms.spam_at, icon:'🚫', label:'Marqué comme spam', color:'var(--red)'});
+    if (ms.unsubscribed_at) items.push({ts:ms.unsubscribed_at, icon:'✋', label:'Désabonné', color:'var(--orange)'});
+
+    items.sort((a,b) => a.ts - b.ts);
+
+    if (!items.length) return '<div class="drawer-meta" style="color:var(--dim)">Aucun événement Mailjet enregistré pour ce mail.</div>';
+
+    let html = '<div class="drawer-meta" style="padding:0;background:transparent">';
+    items.forEach(item => {
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(10,10,62,0.4);border-left:2px solid ${item.color};margin-bottom:4px;border-radius:4px;font-size:12px;line-height:1.4">
+        <span style="font-size:16px">${item.icon}</span>
+        <span style="flex:1;color:#fff;font-weight:600">${item.label}</span>
+        <span style="color:var(--dim);font-family:monospace;font-size:11px">${fmtDateTime(item.ts)}</span>
+      </div>`;
+    });
+    html += `<div style="margin-top:8px;font-size:11px;color:var(--muted);font-style:italic">Dernière actualisation : ${fmtDateTime(ms.last_refreshed)}</div>`;
+    html += '</div>';
+    return html;
   }
 
   // Changement de statut via les chips du drawer (avec audit trail)
@@ -1048,6 +1129,43 @@
   }
 
   // ── SEND ALL ─────────────────────────────────────
+  // ── REFRESH MAILJET STATS ─────────────────────────
+  $('btn-refresh-stats').onclick = async () => {
+    // Récupérer les bons actuellement filtrés (event filter) + qui ont un mailjet_id
+    let allBons = Object.entries(state.bons).map(([id,b]) => ({id, ...b}));
+    if (state.eventFilter) allBons = allBons.filter(b => b.evenement_id === state.eventFilter);
+    const candidates = allBons.filter(b => b.mailjet_id);
+
+    if (!candidates.length) { toast('Aucun bon avec mail Mailjet à rafraîchir', 'error'); return; }
+
+    if (!confirm(`Rafraîchir les stats Mailjet pour ${candidates.length} bon${candidates.length > 1 ? 's' : ''} ? Cela peut prendre quelques secondes.`)) return;
+
+    const btn = $('btn-refresh-stats');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Récup…';
+
+    try {
+      // Découper en chunks de 50 (limite CF)
+      const chunks = [];
+      for (let i = 0; i < candidates.length; i += 50) chunks.push(candidates.slice(i, i+50));
+
+      let totalProcessed = 0, totalErrors = 0;
+      for (const chunk of chunks) {
+        const r = await getMailjetStats({ bon_ids: chunk.map(b => b.id) });
+        totalProcessed += r.data.processed || 0;
+        totalErrors += r.data.errors || 0;
+      }
+
+      toast(`${totalProcessed} stats récupérées${totalErrors > 0 ? ' · ' + totalErrors + ' erreurs' : ''}`, totalErrors > 0 ? 'error' : 'success');
+      // Le onValue Firebase va auto-refresh la table
+    } catch (e) {
+      toast('Erreur Mailjet : ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🔄 Stats Mailjet';
+    }
+  };
+
   $('btn-send-all').onclick = () => {
     const evId = state.eventFilter;
     let enAttente = Object.entries(state.bons)
