@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA Bons Kdo · App v0.6 -->
+<!-- LUMIIA Bons Kdo · App v0.7 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -180,6 +180,27 @@
   .event-filter-select:hover{border-color:var(--cyan)}
   .event-filter-select.has-value{border-color:var(--lime);color:var(--lime)}
   .col-event{color:var(--cyan);font-size:11px;font-weight:700;letter-spacing:0.5px}
+  /* Status chips dans drawer */
+  .status-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .status-chip{padding:8px 14px;border-radius:18px;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;cursor:pointer;border:1px solid var(--bd);background:rgba(255,255,255,0.04);color:var(--dim);transition:all 0.15s}
+  .status-chip:hover{background:rgba(255,255,255,0.08);color:#fff}
+  .status-chip.current{cursor:default;border-width:1.5px}
+  .status-chip.current.en_attente{background:rgba(155,155,203,0.2);color:var(--dim);border-color:rgba(155,155,203,0.5)}
+  .status-chip.current.emis{background:rgba(77,217,232,0.2);color:var(--cyan);border-color:rgba(77,217,232,0.6)}
+  .status-chip.current.utilise{background:rgba(184,255,60,0.2);color:var(--lime);border-color:rgba(184,255,60,0.6)}
+  .status-chip.current.annule{background:rgba(239,68,68,0.2);color:var(--red);border-color:rgba(239,68,68,0.6)}
+  .status-chip.current.expire{background:rgba(245,158,11,0.2);color:var(--orange);border-color:rgba(245,158,11,0.6)}
+  .status-chips-help{font-size:11px;color:var(--muted);margin-top:8px;font-style:italic}
+
+  /* Historique drawer */
+  .history-toggle{background:transparent;border:none;color:var(--dim);font-size:11px;letter-spacing:1px;cursor:pointer;padding:6px 0;display:flex;align-items:center;gap:6px;font-family:inherit;font-weight:700}
+  .history-toggle:hover{color:var(--cyan)}
+  .history-toggle .arrow{transition:transform 0.2s}
+  .history-toggle.open .arrow{transform:rotate(90deg)}
+  .history-content{max-height:0;overflow:hidden;transition:max-height 0.25s}
+  .history-content.open{max-height:300px;margin-top:8px}
+  .history-line{padding:6px 12px;font-size:11px;color:var(--dim);background:rgba(10,10,62,0.4);border-left:2px solid var(--bd);margin-bottom:4px;border-radius:4px;line-height:1.5}
+  .history-line strong{color:#fff;font-weight:600}
   /* RESPONSIVE */
   @media (max-width:768px){
     .topbar{padding:10px 14px;gap:10px;flex-wrap:wrap}
@@ -205,7 +226,7 @@
 <!-- LOGIN ─────────────────────────────────────────── -->
 <div id="login-screen">
   <div class="login-card">
-    <h1>LUMIIA <span class="version-badge">v0.6</span></h1>
+    <h1>LUMIIA <span class="version-badge">v0.7</span></h1>
     <div class="login-sub">BONS CADEAUX · ADMIN</div>
     <div class="form-row">
       <label>Email</label>
@@ -225,7 +246,7 @@
   <header class="topbar">
     <div>
       <span class="brand">LUMIIA</span>
-      <span class="version-badge">v0.6</span>
+      <span class="version-badge">v0.7</span>
     </div>
     <nav class="tabs">
       <button class="tab active" data-view="bons">🎫 Bons cadeaux</button>
@@ -831,11 +852,16 @@
     const ev = state.evenements[bon.evenement_id] || {};
     $('drawer-body').innerHTML = `
       <div class="drawer-section">
-        <div class="drawer-section-title">📋 Statut</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <span class="badge ${status}">${statusLabel(status)}</span>
-          <span class="badge ${bon.type || 'standard'}">${bon.type || 'standard'}</span>
+        <div class="drawer-section-title">📋 Statut du bon</div>
+        <div class="status-chips" id="status-chips">
+          ${['en_attente','emis','utilise','annule'].map(s => {
+            const isCurrent = status === s;
+            return `<button class="status-chip${isCurrent ? ' current ' + s : ''}" data-status="${s}"${isCurrent ? ' disabled' : ''}>${statusLabel(s)}</button>`;
+          }).join('')}
+          ${status === 'expire' ? `<span class="status-chip current expire" style="cursor:default">Expiré</span>` : ''}
         </div>
+        <div class="status-chips-help">Clique sur un autre statut pour le changer.</div>
+        <div style="margin-top:14px"><span class="badge ${bon.type || 'standard'}">${bon.type || 'standard'}</span></div>
       </div>
 
       <div class="drawer-section">
@@ -864,22 +890,23 @@
       </div>
 
       <div class="drawer-section">
-        <div class="drawer-section-title">📊 Métadonnées</div>
+        <div class="drawer-section-title">📊 Informations</div>
         <div class="drawer-meta">
           <strong>Code unique :</strong> <span style="font-family:monospace;color:var(--lime)">${bon.code_unique || '—'}</span><br>
           <strong>Événement :</strong> ${ev.nom || bon.evenement_id}<br>
-          <strong>Créé :</strong> ${fmtDateTime(bon.created_at)}<br>
-          <strong>Envoyé :</strong> ${bon.emis_at ? fmtDateTime(bon.emis_at) : '—'}<br>
-          <strong>Utilisé :</strong> ${bon.utilise_at ? fmtDateTime(bon.utilise_at) : '—'}<br>
-          ${bon.mailjet_id ? '<strong>Mailjet ID :</strong> <span style="font-family:monospace;font-size:11px">' + bon.mailjet_id + '</span><br>' : ''}
+          <strong>Créé le :</strong> ${fmtDateTime(bon.created_at)}${bon.created_by ? ' par ' + bon.created_by : ''}
+        </div>
+        <button class="history-toggle" id="history-toggle" style="margin-top:14px">
+          <span class="arrow">▶</span> HISTORIQUE
+        </button>
+        <div class="history-content" id="history-content">
+          ${renderHistory(bon)}
         </div>
       </div>
 
       <div class="drawer-actions">
         <button class="btn btn-primary" id="d-save">💾 Enregistrer</button>
-        ${bon.statut !== 'utilise' ? `<button class="btn btn-cyan" id="d-send">${bon.statut === 'emis' ? '📧 Renvoyer le mail' : '✉️ Envoyer'}</button>` : ''}
-        ${bon.statut !== 'annule' && bon.statut !== 'utilise' ? `<button class="btn btn-secondary" id="d-cancel">🚫 Annuler ce bon</button>` : ''}
-        ${bon.statut === 'annule' ? `<button class="btn btn-secondary" id="d-restore">↩️ Réactiver</button>` : ''}
+        ${status !== 'utilise' && status !== 'annule' ? `<button class="btn btn-cyan" id="d-send">${bon.statut === 'emis' ? '📧 Renvoyer le mail' : '✉️ Envoyer le mail'}</button>` : ''}
         <button class="btn btn-danger" id="d-delete" style="margin-left:auto">🗑️ Supprimer</button>
       </div>
     `;
@@ -888,9 +915,81 @@
 
     $('d-save').onclick = saveBon;
     if ($('d-send')) $('d-send').onclick = () => sendOne(id);
-    if ($('d-cancel')) $('d-cancel').onclick = () => updateStatut(id, 'annule', 'Bon annulé');
-    if ($('d-restore')) $('d-restore').onclick = () => updateStatut(id, 'en_attente', 'Bon réactivé');
     $('d-delete').onclick = () => deleteBon(id);
+
+    // Status chips : changement de statut au clic
+    document.querySelectorAll('#status-chips .status-chip:not(.current)').forEach(chip => {
+      chip.onclick = () => changeStatut(id, chip.dataset.status, status);
+    });
+
+    // Historique toggle
+    $('history-toggle').onclick = (e) => {
+      $('history-toggle').classList.toggle('open');
+      $('history-content').classList.toggle('open');
+    };
+  }
+
+  function renderHistory(bon) {
+    const events = [];
+    if (bon.created_at) events.push({ts:bon.created_at, txt:`Bon <strong>créé</strong>${bon.created_by ? ' par <strong>'+bon.created_by+'</strong>' : ''}`});
+    if (bon.emis_at) events.push({ts:bon.emis_at, txt:`Mail <strong>envoyé</strong>${bon.mailjet_id ? ' (Mailjet ID : <span style="font-family:monospace">'+bon.mailjet_id+'</span>)' : ''}`});
+    if (bon.utilise_at) {
+      const via = bon.utilise_via === 'admin' ? ' <strong>manuellement</strong>' : (bon.utilise_via === 'scan' ? ' via <strong>scan QR</strong>' : '');
+      const by = bon.utilise_by ? ' par <strong>'+bon.utilise_by+'</strong>' : '';
+      events.push({ts:bon.utilise_at, txt:`Bon <strong>validé</strong>${via}${by}`});
+    }
+    if (bon.annule_at) events.push({ts:bon.annule_at, txt:`Bon <strong>annulé</strong>${bon.annule_by ? ' par <strong>'+bon.annule_by+'</strong>' : ''}`});
+    if (bon.restored_at) events.push({ts:bon.restored_at, txt:`Bon <strong>réactivé</strong>${bon.restored_by ? ' par <strong>'+bon.restored_by+'</strong>' : ''}`});
+    if (bon.last_status_change && bon.last_status_change_by && !events.some(e => e.ts === bon.last_status_change)) {
+      events.push({ts:bon.last_status_change, txt:`Statut changé en <strong>'+(bon.statut||'')+'</strong> par <strong>'+bon.last_status_change_by+'</strong>`});
+    }
+    events.sort((a,b) => a.ts - b.ts);
+    if (!events.length) return '<div class="history-line">Aucune activité enregistrée.</div>';
+    return events.map(e => `<div class="history-line"><span style="color:var(--soft);font-family:monospace">${fmtDateTime(e.ts)}</span> · ${e.txt}</div>`).join('');
+  }
+
+  // Changement de statut via les chips du drawer (avec audit trail)
+  async function changeStatut(id, newStatus, oldStatus) {
+    const labels = {en_attente:'remettre en attente', emis:'marquer émis', utilise:'marquer utilisé', annule:'annuler'};
+    const action = labels[newStatus] || ('changer en '+newStatus);
+    if (!confirm(`Voulez-vous vraiment ${action} ce bon ?`)) return;
+
+    const update_data = { statut: newStatus, last_status_change: Date.now(), last_status_change_by: state.user.email };
+
+    if (newStatus === 'utilise') {
+      update_data.utilise_at = Date.now();
+      update_data.utilise_by = state.user.email;
+      update_data.utilise_via = 'admin';
+    } else if (oldStatus === 'utilise') {
+      // On déannule une utilisation
+      update_data.utilise_at = null;
+      update_data.utilise_by = null;
+      update_data.utilise_via = null;
+    }
+
+    if (newStatus === 'annule') {
+      update_data.annule_at = Date.now();
+      update_data.annule_by = state.user.email;
+    }
+    if (oldStatus === 'annule' && newStatus !== 'annule') {
+      update_data.restored_at = Date.now();
+      update_data.restored_by = state.user.email;
+    }
+
+    if (newStatus === 'en_attente') {
+      // Remise à zéro des champs liés
+      update_data.emis_at = null;
+      update_data.mailjet_id = null;
+    }
+
+    try {
+      await update(ref(db, 'bons_kdo/bons/' + id), update_data);
+      toast(`Statut → ${statusLabel(newStatus)}`, 'success');
+      // Refresh the drawer with updated bon
+      setTimeout(() => openDrawer(id), 100);
+    } catch (e) {
+      toast('Erreur : ' + e.message, 'error');
+    }
   }
   function closeDrawer() {
     $('drawer-overlay').classList.remove('open');
@@ -919,15 +1018,6 @@
     }
   }
 
-  async function updateStatut(id, statut, msg) {
-    try {
-      await update(ref(db, 'bons_kdo/bons/' + id), { statut });
-      toast(msg, 'success');
-      closeDrawer();
-    } catch (e) {
-      toast('Erreur : ' + e.message, 'error');
-    }
-  }
 
   async function deleteBon(id) {
     if (!confirm('Supprimer définitivement ce bon ? Cette action est irréversible.')) return;
