@@ -1,224 +1,1081 @@
 <!DOCTYPE html>
-<!-- LUMIIA Bons Kdo — v0.2 -->
+<!-- LUMIIA Bons Kdo · App v0.4 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LUMIIA Bons Kdo</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:,">
 <style>
-:root{
-  --cosmos:#0b0520;--deep:#05001a;--panel:#140932;
-  --cyan:#4dd9e8;--mag:#d946ef;--violet:#a855f7;--lime:#b8ff3c;
-  --tx:#fff;--soft:#c9c2e8;--dim:#5a5070;--bd:rgba(255,255,255,.08);
-  --ok:#4ade80;--err:#ff6b6b;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;overflow:hidden;}
-body{
-  font-family:'Nunito',sans-serif;background:var(--cosmos);color:var(--tx);
-  display:flex;flex-direction:column;
-}
-button{font-family:inherit;}
-input,textarea,select{font-family:inherit;color:var(--tx);}
+  :root{
+    --cosmos:#0a0a3e; --deep:#05001a; --panel:#1a1a64; --panel-light:#22206e;
+    --cyan:#4dd9e8; --mag:#d946ef; --violet:#a855f7; --lime:#b8ff3c;
+    --soft:#c9c2e8; --dim:#9b9bcb; --muted:#5a5a8a;
+    --green:#22c55e; --orange:#f59e0b; --red:#ef4444;
+    --bd:rgba(77,217,232,0.18);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--cosmos);color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh}
+  body{background-image:radial-gradient(circle at 10% 0%,rgba(217,70,239,0.12),transparent 50%),radial-gradient(circle at 90% 100%,rgba(77,217,232,0.10),transparent 50%);min-height:100vh}
+  .hidden{display:none !important}
+  button{font-family:inherit}
+  input,select,textarea{font-family:inherit}
 
-/* ── TOPBAR ───────────────── */
-#topbar{
-  height:52px;flex-shrink:0;
-  background:linear-gradient(90deg,rgba(5,0,26,.98),rgba(20,9,50,.98));
-  border-bottom:1px solid var(--bd);
-  display:flex;align-items:center;padding:0 18px;gap:14px;
-}
-.tb-logo{
-  font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.18em;
-  background:linear-gradient(135deg,var(--cyan),var(--violet));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.tb-v{font-size:.65rem;color:var(--dim);letter-spacing:.1em;}
-.tb-tabs{display:flex;gap:6px;flex:1;}
-.tb-tab{
-  padding:6px 14px;border:1px solid var(--bd);border-radius:50px;
-  background:transparent;color:var(--soft);font-size:.78rem;font-weight:700;
-  cursor:pointer;transition:all .2s;letter-spacing:.04em;
-}
-.tb-tab:hover{border-color:rgba(168,85,247,.35);color:var(--tx);}
-.tb-tab.active{
-  background:linear-gradient(135deg,rgba(77,217,232,.15),rgba(168,85,247,.15));
-  border-color:rgba(77,217,232,.4);color:var(--cyan);
-}
-.tb-user{font-size:.72rem;color:var(--dim);}
-.tb-btn{
-  padding:6px 14px;border:1px solid var(--bd);border-radius:50px;
-  background:transparent;color:var(--soft);font-size:.7rem;font-weight:700;
-  cursor:pointer;transition:all .2s;
-}
-.tb-btn:hover{border-color:var(--err);color:var(--err);}
+  /* LOGIN ───────────────────────────── */
+  #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .login-card{background:rgba(26,26,100,0.6);border:1px solid var(--bd);border-radius:18px;padding:36px 32px;max-width:420px;width:100%}
+  .login-card h1{margin:0 0 6px 0;font-size:32px;font-weight:900;letter-spacing:2px;text-align:center}
+  .login-card .login-sub{font-size:11px;letter-spacing:2px;color:var(--lime);text-align:center;margin-bottom:28px}
+  .form-row{margin-bottom:14px}
+  .form-row label{display:block;font-size:11px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+  .form-row input,.form-row select,.form-row textarea{width:100%;padding:13px 16px;background:rgba(10,10,62,0.7);border:1px solid var(--bd);border-radius:11px;color:#fff;font-size:15px}
+  .form-row input:focus,.form-row select:focus,.form-row textarea:focus{outline:none;border-color:var(--cyan)}
+  #login-err{padding:12px 14px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);border-radius:10px;color:var(--red);font-size:13px;margin-bottom:12px}
 
-/* ── CONTENU ──────────────── */
-#main{flex:1;overflow:auto;padding:24px;position:relative;}
-.view{display:none;animation:fadein .25s both;}
-.view.active{display:block;}
-@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  /* BUTTONS ─────────────────────────── */
+  .btn{display:inline-block;padding:11px 18px;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;transition:transform 0.1s,opacity 0.2s,background 0.2s}
+  .btn:active{transform:scale(0.97)}
+  .btn:disabled{opacity:0.5;cursor:not-allowed}
+  .btn-primary{background:var(--lime);color:var(--cosmos)}
+  .btn-primary:hover{background:#cfff5c}
+  .btn-secondary{background:rgba(255,255,255,0.08);color:#fff;border:1px solid var(--bd)}
+  .btn-secondary:hover{background:rgba(255,255,255,0.12)}
+  .btn-cyan{background:var(--cyan);color:var(--cosmos)}
+  .btn-mag{background:var(--mag);color:#fff}
+  .btn-danger{background:var(--red);color:#fff}
+  .btn-icon{padding:8px 10px;font-size:13px;min-width:auto}
+  .btn-block{display:block;width:100%}
+  .btn-sm{padding:7px 12px;font-size:12px;border-radius:8px}
 
-/* ── ÉCRAN LOGIN ──────────── */
-#login-screen{
-  position:fixed;inset:0;background:var(--cosmos);z-index:1000;
-  display:flex;align-items:center;justify-content:center;flex-direction:column;
-}
-#login-screen.hide{display:none;}
-.login-card{
-  background:linear-gradient(160deg,var(--panel),var(--cosmos));
-  border:1px solid var(--bd);border-radius:18px;padding:32px;
-  width:100%;max-width:380px;
-}
-.login-title{
-  font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.18em;
-  background:linear-gradient(135deg,var(--cyan),var(--mag));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  text-align:center;margin-bottom:6px;
-}
-.login-sub{text-align:center;color:var(--dim);font-size:.75rem;margin-bottom:24px;letter-spacing:.05em;}
-.login-card input{
-  width:100%;padding:11px 14px;background:rgba(255,255,255,.04);
-  border:1px solid var(--bd);border-radius:10px;color:var(--tx);
-  font-size:.85rem;margin-bottom:10px;outline:none;
-}
-.login-card input:focus{border-color:var(--cyan);}
-.login-card button{
-  width:100%;padding:12px;border:none;border-radius:10px;
-  background:linear-gradient(135deg,var(--cyan),var(--violet));color:var(--deep);
-  font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.1em;
-  cursor:pointer;margin-top:6px;
-}
-#login-err{font-size:.7rem;color:var(--err);text-align:center;margin-top:8px;min-height:14px;}
+  /* APP LAYOUT ──────────────────────── */
+  #app{min-height:100vh;display:flex;flex-direction:column}
 
-/* ── PLACEHOLDERS VUES ────── */
-.placeholder{
-  text-align:center;padding:80px 20px;color:var(--dim);
-}
-.placeholder h2{
-  font-family:'Bebas Neue',sans-serif;font-size:2rem;
-  background:linear-gradient(90deg,var(--cyan),var(--mag));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  letter-spacing:.1em;margin-bottom:14px;
-}
-.placeholder p{font-size:.85rem;line-height:1.6;max-width:440px;margin:0 auto 8px;}
-.placeholder .emoji{font-size:3.5rem;margin-bottom:14px;display:block;}
+  /* TOPBAR */
+  .topbar{padding:12px 20px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--bd);background:rgba(10,10,62,0.7);backdrop-filter:blur(8px);position:sticky;top:0;z-index:50}
+  .brand{font-size:20px;font-weight:900;letter-spacing:2px;color:#fff}
+  .version-badge{font-size:9px;font-weight:700;color:var(--lime);background:rgba(184,255,60,0.12);padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:middle}
+  .tabs{display:flex;gap:4px;margin-left:20px}
+  .tab{padding:8px 14px;background:transparent;border:none;color:var(--dim);font-size:13px;font-weight:600;cursor:pointer;border-radius:9px;transition:all 0.15s}
+  .tab:hover{color:#fff;background:rgba(255,255,255,0.06)}
+  .tab.active{background:rgba(184,255,60,0.15);color:var(--lime)}
+  .topbar-spacer{flex:1}
+  .session-pill{display:flex;align-items:center;gap:10px;padding:6px 12px;background:rgba(255,255,255,0.05);border:1px solid var(--bd);border-radius:20px;font-size:12px}
+  .session-pill .email{color:var(--soft)}
+  .session-pill button{background:transparent;border:none;color:var(--mag);cursor:pointer;font-size:11px;text-decoration:underline;padding:0}
+
+  /* MAIN */
+  main{flex:1;padding:24px 20px;max-width:1400px;margin:0 auto;width:100%}
+
+  /* EVENT SELECTOR */
+  .event-bar{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+  .event-bar select{padding:11px 36px 11px 16px;background:rgba(10,10,62,0.7);border:1px solid var(--bd);border-radius:11px;color:#fff;font-size:14px;font-weight:600;min-width:280px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%234dd9e8' d='M6 8L0 0h12z'/></svg>");background-repeat:no-repeat;background-position:right 14px center;-webkit-appearance:none;appearance:none}
+
+  /* STATS CARDS */
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+  .stat-card{padding:18px 20px;background:rgba(26,26,100,0.5);border:1px solid var(--bd);border-radius:14px;position:relative;overflow:hidden}
+  .stat-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--accent,var(--cyan))}
+  .stat-card.total{--accent:var(--cyan)}
+  .stat-card.attente{--accent:var(--dim)}
+  .stat-card.emis{--accent:var(--cyan)}
+  .stat-card.utilise{--accent:var(--lime)}
+  .stat-card.expire{--accent:var(--orange)}
+  .stat-card.annule{--accent:var(--red)}
+  .stat-label{font-size:10px;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;font-weight:700}
+  .stat-value{font-size:30px;font-weight:900;color:#fff;margin-top:4px;line-height:1}
+  .stat-pct{font-size:11px;color:var(--accent,var(--cyan));margin-top:6px;font-weight:600}
+
+  /* PROGRESS BAR */
+  .progress-card{margin-bottom:24px;padding:18px 20px;background:rgba(26,26,100,0.5);border:1px solid var(--bd);border-radius:14px}
+  .progress-title{font-size:11px;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between}
+  .progress-bar{height:24px;background:rgba(10,10,62,0.6);border-radius:12px;overflow:hidden;display:flex}
+  .progress-seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--cosmos);transition:width 0.4s}
+  .progress-seg.utilise{background:var(--lime)}
+  .progress-seg.emis{background:var(--cyan)}
+  .progress-seg.attente{background:rgba(255,255,255,0.1);color:var(--dim)}
+  .progress-seg.annule{background:var(--red);color:#fff}
+  .progress-seg.expire{background:var(--orange);color:var(--cosmos)}
+
+  /* TOOLBAR */
+  .toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+  .search-box{flex:1;min-width:200px;position:relative}
+  .search-box input{width:100%;padding:11px 16px 11px 38px;background:rgba(10,10,62,0.7);border:1px solid var(--bd);border-radius:11px;color:#fff;font-size:14px}
+  .search-box::before{content:'🔍';position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;opacity:0.6}
+  .filter-chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{padding:7px 12px;background:rgba(255,255,255,0.05);border:1px solid var(--bd);border-radius:18px;color:var(--dim);font-size:12px;cursor:pointer;font-weight:600;transition:all 0.15s}
+  .chip:hover{border-color:var(--cyan);color:#fff}
+  .chip.active{background:rgba(184,255,60,0.15);border-color:var(--lime);color:var(--lime)}
+
+  /* TABLE */
+  .table-wrap{background:rgba(26,26,100,0.4);border:1px solid var(--bd);border-radius:14px;overflow:hidden}
+  .table-scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:800px}
+  thead th{padding:12px 14px;background:rgba(10,10,62,0.6);color:var(--dim);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}
+  thead th.sortable{cursor:pointer;user-select:none}
+  thead th.sortable:hover{color:var(--cyan)}
+  thead th.sorted-asc::after{content:' ▲';color:var(--lime)}
+  thead th.sorted-desc::after{content:' ▼';color:var(--lime)}
+  tbody tr{border-bottom:1px solid rgba(77,217,232,0.08);cursor:pointer;transition:background 0.1s}
+  tbody tr:hover{background:rgba(77,217,232,0.06)}
+  tbody td{padding:12px 14px;color:#fff;vertical-align:middle}
+  tbody tr:last-child{border-bottom:none}
+  .nom-cell{font-weight:700}
+  .co-cell{color:var(--soft);font-size:12px}
+  .lot-cell{color:var(--soft);font-size:12px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .code-cell{font-family:'Courier New',monospace;color:var(--lime);font-weight:700;letter-spacing:1px}
+  .date-cell{color:var(--dim);font-size:12px;white-space:nowrap}
+  .empty-state{padding:60px 20px;text-align:center;color:var(--dim)}
+  .empty-state .icon{font-size:48px;margin-bottom:12px}
+
+  /* STATUS BADGES */
+  .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap}
+  .badge.attente{background:rgba(155,155,203,0.15);color:var(--dim);border:1px solid rgba(155,155,203,0.3)}
+  .badge.emis{background:rgba(77,217,232,0.15);color:var(--cyan);border:1px solid rgba(77,217,232,0.4)}
+  .badge.utilise{background:rgba(184,255,60,0.15);color:var(--lime);border:1px solid rgba(184,255,60,0.4)}
+  .badge.annule{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.4)}
+  .badge.expire{background:rgba(245,158,11,0.15);color:var(--orange);border:1px solid rgba(245,158,11,0.4)}
+  .badge.vip{background:rgba(255,215,0,0.15);color:#ffd700;border:1px solid rgba(255,215,0,0.4)}
+  .badge.consolation{background:rgba(217,70,239,0.15);color:var(--mag);border:1px solid rgba(217,70,239,0.4)}
+  .badge.standard{background:rgba(77,217,232,0.1);color:var(--cyan);border:1px solid rgba(77,217,232,0.3)}
+
+  /* DRAWER */
+  .drawer-overlay{position:fixed;inset:0;background:rgba(5,0,26,0.7);z-index:90;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity 0.25s}
+  .drawer-overlay.open{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100vh;width:min(540px,100%);background:var(--panel);box-shadow:-8px 0 40px rgba(0,0,0,0.6);z-index:100;transform:translateX(100%);transition:transform 0.3s ease;overflow-y:auto;border-left:1px solid var(--bd)}
+  .drawer.open{transform:translateX(0)}
+  .drawer-header{padding:18px 24px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--panel);z-index:10}
+  .drawer-title{font-size:16px;font-weight:800}
+  .drawer-close{background:transparent;border:none;color:var(--soft);font-size:22px;cursor:pointer;padding:4px 10px;border-radius:8px}
+  .drawer-close:hover{background:rgba(255,255,255,0.08)}
+  .drawer-body{padding:20px 24px}
+  .drawer-section{margin-bottom:24px}
+  .drawer-section-title{font-size:10px;letter-spacing:1.5px;color:var(--lime);text-transform:uppercase;font-weight:700;margin-bottom:10px}
+  .drawer-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .drawer-grid .form-row{margin-bottom:0}
+  .drawer-meta{padding:14px 16px;background:rgba(10,10,62,0.5);border-radius:10px;font-size:12px;color:var(--dim);line-height:1.7}
+  .drawer-meta strong{color:#fff;font-weight:600}
+  .drawer-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--bd);margin-top:18px}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(5,0,26,0.85);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)}
+  .modal{background:var(--panel);border:1px solid var(--bd);border-radius:18px;padding:24px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto}
+  .modal h2{margin:0 0 4px 0;font-size:20px;font-weight:800}
+  .modal .modal-sub{color:var(--dim);font-size:13px;margin-bottom:20px}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:14px 22px;border-radius:12px;background:var(--panel-light);border:1px solid var(--bd);color:#fff;font-size:14px;font-weight:600;box-shadow:0 8px 28px rgba(0,0,0,0.5);z-index:300;animation:slideUp 0.3s}
+  .toast.success{border-color:var(--lime);color:var(--lime)}
+  .toast.error{border-color:var(--red);color:var(--red)}
+  @keyframes slideUp{from{transform:translate(-50%,20px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+
+  /* CSV import preview */
+  .csv-preview{margin-top:16px;max-height:280px;overflow-y:auto;border:1px solid var(--bd);border-radius:10px}
+  .csv-preview table{font-size:12px;min-width:auto}
+  .csv-preview th{background:rgba(10,10,62,0.7);position:sticky;top:0;font-size:9px}
+  .csv-preview td{padding:8px 10px}
+  .csv-preview .row-skip{opacity:0.4}
+  .csv-row-type-select{background:transparent;border:1px solid var(--bd);border-radius:6px;color:#fff;padding:3px 6px;font-size:11px}
+
+  /* RESPONSIVE */
+  @media (max-width:768px){
+    .topbar{padding:10px 14px;gap:10px;flex-wrap:wrap}
+    .tabs{margin-left:0;width:100%;justify-content:flex-start}
+    .session-pill .email{display:none}
+    main{padding:16px 12px}
+    .event-bar select{min-width:auto;width:100%}
+    .stats-grid{grid-template-columns:repeat(2,1fr)}
+    .stat-value{font-size:24px}
+    .drawer{width:100%}
+    .drawer-grid{grid-template-columns:1fr}
+  }
+
+  /* SPINNER */
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--cyan);border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-overlay{position:fixed;inset:0;background:rgba(5,0,26,0.6);z-index:400;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+  .loading-overlay .spinner{width:32px;height:32px;border-width:3px;margin-right:12px}
 </style>
 </head>
 <body>
 
-<!-- ── ÉCRAN DE CONNEXION ── -->
+<!-- LOGIN ─────────────────────────────────────────── -->
 <div id="login-screen">
   <div class="login-card">
-    <div class="login-title">LUMIIA BONS KDO</div>
-    <div class="login-sub">Connexion administrateur</div>
-    <div style="text-align:center;font-size:.6rem;color:var(--dim);letter-spacing:.1em;margin-bottom:18px;">v0.2</div>
-    <input id="li-email" type="email" placeholder="email" autocomplete="email">
-    <input id="li-pass" type="password" placeholder="mot de passe" autocomplete="current-password">
-    <button onclick="doLogin()">Se connecter →</button>
-    <div id="login-err"></div>
+    <h1>LUMIIA <span class="version-badge">v0.4</span></h1>
+    <div class="login-sub">BONS CADEAUX · ADMIN</div>
+    <div class="form-row">
+      <label>Email</label>
+      <input type="email" id="li-email" autocomplete="email" autocapitalize="off">
+    </div>
+    <div class="form-row">
+      <label>Mot de passe</label>
+      <input type="password" id="li-pass" autocomplete="current-password">
+    </div>
+    <div id="login-err" class="hidden"></div>
+    <button class="btn btn-primary btn-block" id="btn-login">Se connecter</button>
   </div>
 </div>
 
-<!-- ── TOPBAR ── -->
-<div id="topbar">
-  <span class="tb-logo">🎁 LUMIIA BONS KDO</span>
-  <span class="tb-v">v0.2</span>
-  <div class="tb-tabs">
-    <button class="tb-tab active" onclick="setView('events')">📅 Événements</button>
-    <button class="tb-tab" onclick="setView('send')">✉️ Envoi</button>
-    <button class="tb-tab" onclick="setView('scan')">📷 Scanner</button>
-  </div>
-  <span class="tb-user" id="tb-user-email"></span>
-  <button class="tb-btn" onclick="doLogout()">Déconnexion</button>
+<!-- APP ────────────────────────────────────────────── -->
+<div id="app" class="hidden">
+  <header class="topbar">
+    <div>
+      <span class="brand">LUMIIA</span>
+      <span class="version-badge">v0.4</span>
+    </div>
+    <nav class="tabs">
+      <button class="tab active" data-view="bons">🎫 Bons cadeaux</button>
+      <button class="tab" data-view="evenements">📅 Événements</button>
+      <button class="tab" data-view="scanner-link" onclick="window.open('/bons_kdo/scan/','_blank')">📷 Scanner</button>
+    </nav>
+    <div class="topbar-spacer"></div>
+    <div class="session-pill">
+      <span class="email" id="user-email">—</span>
+      <button id="btn-logout">Déconnexion</button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- VIEW BONS ─────────────────────────────────── -->
+    <section id="view-bons">
+
+      <div class="event-bar">
+        <select id="event-selector"><option value="">Sélectionner un événement…</option></select>
+        <button class="btn btn-secondary btn-sm" id="btn-new-event">+ Nouvel événement</button>
+        <button class="btn btn-cyan btn-sm" id="btn-import-csv" disabled>📥 Importer CSV</button>
+        <div style="flex:1"></div>
+        <button class="btn btn-primary" id="btn-send-all" disabled>✉️ Envoyer tous les bons en attente</button>
+      </div>
+
+      <div class="stats-grid" id="stats-grid">
+        <!-- populated dynamically -->
+      </div>
+
+      <div class="progress-card hidden" id="progress-card">
+        <div class="progress-title">
+          <span>PROGRESSION</span>
+          <span id="progress-summary">—</span>
+        </div>
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <input type="text" id="search-input" placeholder="Rechercher un nom, email, code, lot…">
+        </div>
+        <div class="filter-chips" id="filter-chips">
+          <button class="chip active" data-filter="all">Tous</button>
+          <button class="chip" data-filter="en_attente">En attente</button>
+          <button class="chip" data-filter="emis">Émis</button>
+          <button class="chip" data-filter="utilise">Utilisés</button>
+          <button class="chip" data-filter="annule">Annulés</button>
+          <button class="chip" data-filter="expire">Expirés</button>
+        </div>
+      </div>
+
+      <div class="table-wrap" id="table-wrap">
+        <div class="empty-state" id="empty-bons">
+          <div class="icon">🎫</div>
+          <div>Sélectionne un événement pour voir ses bons cadeaux.</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- VIEW EVENTS ──────────────────────────────── -->
+    <section id="view-evenements" class="hidden">
+      <h2 style="margin:0 0 18px 0;font-size:22px;font-weight:800">📅 Événements</h2>
+      <div id="events-list"></div>
+      <button class="btn btn-primary" id="btn-new-event-2" style="margin-top:18px">+ Créer un événement</button>
+    </section>
+
+  </main>
 </div>
 
-<!-- ── MAIN ── -->
-<div id="main">
-  <div class="view active" id="view-events">
-    <div class="placeholder">
-      <span class="emoji">📅</span>
-      <h2>ÉVÉNEMENTS</h2>
-      <p>Crée un événement, configure ton template email + bon PDF, importe ta liste de gagnants.</p>
-      <p style="color:var(--cyan);margin-top:14px;">À implémenter — t5</p>
-    </div>
+<!-- DRAWER détail bon ─────────────────────────────── -->
+<div class="drawer-overlay" id="drawer-overlay"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title">Détail du bon cadeau</div>
+    <button class="drawer-close" id="drawer-close">✕</button>
   </div>
-  <div class="view" id="view-send">
-    <div class="placeholder">
-      <span class="emoji">✉️</span>
-      <h2>ENVOI</h2>
-      <p>Prévisualise les bons, envoie en masse via Mailjet, suis ouvertures et utilisations en temps réel.</p>
-      <p style="color:var(--cyan);margin-top:14px;">À implémenter — t7</p>
+  <div class="drawer-body" id="drawer-body"></div>
+</aside>
+
+<!-- MODAL création événement ──────────────────────── -->
+<div class="modal-overlay hidden" id="modal-event">
+  <div class="modal">
+    <h2 id="modal-event-title">Nouvel événement</h2>
+    <div class="modal-sub">Crée un événement pour générer les bons cadeaux des participants.</div>
+    <div class="form-row">
+      <label>Nom de l'événement *</label>
+      <input type="text" id="ev-nom" placeholder="ex. Soirée des Lauréats REDA">
     </div>
-  </div>
-  <div class="view" id="view-scan">
-    <div class="placeholder">
-      <span class="emoji">📷</span>
-      <h2>SCANNER</h2>
-      <p>Page mobile pour les employés LUMIIA. Scan QR du bon → validation au bar.</p>
-      <p style="color:var(--cyan);margin-top:14px;">À implémenter — t8</p>
+    <div class="form-row">
+      <label>Date *</label>
+      <input type="date" id="ev-date">
+    </div>
+    <div class="form-row">
+      <label>Lieu</label>
+      <input type="text" id="ev-lieu" placeholder="ex. Hostellerie La Vieille Ferme">
+    </div>
+    <div class="form-row">
+      <label>URL vidéo (optionnel)</label>
+      <input type="url" id="ev-video" placeholder="https://youtube.com/...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btn-cancel-event">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-event">Enregistrer</button>
     </div>
   </div>
 </div>
 
-<!-- ── FIREBASE ── -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<!-- MODAL import CSV ──────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-csv">
+  <div class="modal" style="max-width:700px">
+    <h2>📥 Importer des bons depuis un CSV</h2>
+    <div class="modal-sub">Le CSV doit contenir les colonnes : <strong>Nom et Prénom</strong>, <strong>Entreprise</strong>, <strong>Email</strong>, <strong>Lot</strong>. Lignes sans lot ignorées.</div>
+    <div class="form-row">
+      <label>Fichier CSV</label>
+      <input type="file" id="csv-file" accept=".csv,text/csv">
+    </div>
+    <div id="csv-preview-zone"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btn-cancel-csv">Annuler</button>
+      <button class="btn btn-primary" id="btn-confirm-csv" disabled>Créer les bons</button>
+    </div>
+  </div>
+</div>
 
-<script>
-const FB_CFG = {
-  apiKey: "AIzaSyBPgjVFKrP80qX_hlfUFqL168XONfNIBA4",
-  authDomain: "lumiia-live.firebaseapp.com",
-  databaseURL: "https://lumiia-live-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "lumiia-live",
-  storageBucket: "lumiia-live.firebasestorage.app",
-  messagingSenderId: "823919513931",
-  appId: "1:823919513931:web:6f6f3c7c6d1699457b18ce"
-};
-firebase.initializeApp(FB_CFG);
-const auth = firebase.auth();
-const db = firebase.database();
+<!-- MODAL confirmer envoi masse ──────────────────── -->
+<div class="modal-overlay hidden" id="modal-send-all">
+  <div class="modal">
+    <h2>✉️ Envoyer en masse</h2>
+    <div class="modal-sub" id="send-all-sub">—</div>
+    <div style="padding:14px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;font-size:13px;color:#ffd089">
+      ⚠️ Action irréversible : les bons seront envoyés par mail <strong>à leurs vrais destinataires</strong>. Vérifie bien que les emails sont corrects et que tu n'es pas en mode test.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btn-cancel-send-all">Annuler</button>
+      <button class="btn btn-mag" id="btn-confirm-send-all">Confirmer l'envoi</button>
+    </div>
+  </div>
+</div>
 
-let currentUser = null;
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  import { getDatabase, ref, onValue, set, push, update, remove } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+  import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js';
 
-// ── AUTH ──
-auth.onAuthStateChanged(user => {
-  if (user) {
-    currentUser = user;
-    document.getElementById('login-screen').classList.add('hide');
-    document.getElementById('tb-user-email').textContent = user.email;
-  } else {
-    currentUser = null;
-    document.getElementById('login-screen').classList.remove('hide');
+  const firebaseConfig = {
+    apiKey: "AIzaSyBPgjVFKrP80qX_hlfUFqL168XONfNIBA4",
+    authDomain: "lumiia-live.firebaseapp.com",
+    databaseURL: "https://lumiia-live-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "lumiia-live",
+    storageBucket: "lumiia-live.firebasestorage.app",
+    messagingSenderId: "823919513931",
+    appId: "1:823919513931:web:6f6f3c7c6d1699457b18ce"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+  const functions = getFunctions(app, 'europe-west1');
+  const sendBonEmail = httpsCallable(functions, 'sendBonEmail');
+
+  // ── HELPERS ──────────────────────────────────────
+  const $ = (id) => document.getElementById(id);
+  const show = (id) => $(id).classList.remove('hidden');
+  const hide = (id) => $(id).classList.add('hidden');
+  function toast(msg, type = '') {
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
   }
-});
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const MOIS = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+    const d = typeof iso === 'number' ? new Date(iso) : new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.getDate() + ' ' + MOIS[d.getMonth()] + ' ' + d.getFullYear();
+  }
+  function fmtDateTime(ms) {
+    if (!ms) return '—';
+    return new Date(ms).toLocaleString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+  }
+  function genCode() {
+    const ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    let c = '';
+    for (let i = 0; i < 8; i++) c += ALPHA[Math.floor(Math.random() * ALPHA.length)];
+    return c;
+  }
+  function isExpired(bon) {
+    if (!bon.date_validite || bon.statut === 'utilise' || bon.statut === 'annule') return false;
+    return new Date(bon.date_validite) < new Date();
+  }
+  function effectiveStatus(bon) {
+    if (bon.statut === 'utilise' || bon.statut === 'annule') return bon.statut;
+    if (isExpired(bon)) return 'expire';
+    return bon.statut || 'en_attente';
+  }
+  function csvParse(text) {
+    // Simple CSV parser supportant guillemets et virgules dans champs
+    const rows = [];
+    let row = [], cur = '', inq = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (inq) {
+        if (ch === '"' && text[i+1] === '"') { cur += '"'; i++; }
+        else if (ch === '"') inq = false;
+        else cur += ch;
+      } else {
+        if (ch === '"') inq = true;
+        else if (ch === ',') { row.push(cur); cur = ''; }
+        else if (ch === '\n') { row.push(cur); cur = ''; rows.push(row); row = []; }
+        else if (ch === '\r') {}
+        else cur += ch;
+      }
+    }
+    if (cur || row.length) { row.push(cur); rows.push(row); }
+    return rows.filter(r => r.some(c => c.trim()));
+  }
 
-function doLogin() {
-  const email = document.getElementById('li-email').value.trim();
-  const pass = document.getElementById('li-pass').value;
-  document.getElementById('login-err').textContent = '';
-  auth.signInWithEmailAndPassword(email, pass)
-    .catch(e => { document.getElementById('login-err').textContent = '❌ ' + (e.message || 'Erreur'); });
-}
+  // ── STATE ────────────────────────────────────────
+  const state = {
+    user: null,
+    evenements: {},
+    bons: {},
+    currentEventId: null,
+    filter: 'all',
+    search: '',
+    sortKey: 'created_at',
+    sortDir: 'desc',
+  };
 
-function doLogout() { auth.signOut(); }
+  // ── AUTH ─────────────────────────────────────────
+  onAuthStateChanged(auth, (user) => {
+    state.user = user;
+    if (user) {
+      $('user-email').textContent = user.email;
+      hide('login-screen');
+      show('app');
+      bindData();
+    } else {
+      show('login-screen');
+      hide('app');
+    }
+  });
 
-// ── NAVIGATION ──
-function setView(v) {
-  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tb-tab').forEach(el => el.classList.remove('active'));
-  document.getElementById('view-' + v).classList.add('active');
-  const idx = {events:0, send:1, scan:2}[v] ?? 0;
-  document.querySelectorAll('.tb-tab')[idx]?.classList.add('active');
-}
+  $('btn-login').onclick = async () => {
+    const email = $('li-email').value.trim();
+    const pass = $('li-pass').value;
+    if (!email || !pass) return;
+    hide('login-err');
+    $('btn-login').disabled = true;
+    $('btn-login').innerHTML = '<span class="spinner"></span>Connexion…';
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (e) {
+      $('login-err').textContent = 'Identifiants incorrects';
+      show('login-err');
+    } finally {
+      $('btn-login').disabled = false;
+      $('btn-login').textContent = 'Se connecter';
+    }
+  };
+  $('li-pass').addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-login').click(); });
+  $('btn-logout').onclick = () => signOut(auth);
 
-// Enter key login
-document.getElementById('li-pass').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
-});
+  // ── DATA BINDING ─────────────────────────────────
+  function bindData() {
+    onValue(ref(db, 'bons_kdo/evenements'), snap => {
+      state.evenements = snap.val() || {};
+      renderEventSelector();
+      renderEventsList();
+    });
+    onValue(ref(db, 'bons_kdo/bons'), snap => {
+      state.bons = snap.val() || {};
+      render();
+    });
+  }
+
+  // ── TABS ─────────────────────────────────────────
+  document.querySelectorAll('.tab[data-view]').forEach(btn => {
+    btn.onclick = () => {
+      const view = btn.dataset.view;
+      if (view === 'scanner-link') return; // handled by onclick attr
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      ['view-bons','view-evenements'].forEach(v => hide(v));
+      show('view-' + view);
+    };
+  });
+
+  // ── EVENT SELECTOR ───────────────────────────────
+  function renderEventSelector() {
+    const sel = $('event-selector');
+    const events = Object.entries(state.evenements);
+    const prevValue = sel.value;
+    sel.innerHTML = '<option value="">Sélectionner un événement…</option>';
+    events.sort((a,b) => (b[1].date || '').localeCompare(a[1].date || ''));
+    events.forEach(([id, ev]) => {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = (ev.nom || id) + (ev.date ? ' · ' + fmtDate(ev.date) : '');
+      sel.appendChild(opt);
+    });
+    if (prevValue && state.evenements[prevValue]) {
+      sel.value = prevValue;
+      state.currentEventId = prevValue;
+    } else if (state.currentEventId && state.evenements[state.currentEventId]) {
+      sel.value = state.currentEventId;
+    }
+  }
+  $('event-selector').onchange = (e) => {
+    state.currentEventId = e.target.value || null;
+    render();
+  };
+
+  // ── EVENT MODAL ──────────────────────────────────
+  let editingEventId = null;
+  function openEventModal(id = null) {
+    editingEventId = id;
+    if (id) {
+      const ev = state.evenements[id];
+      $('modal-event-title').textContent = 'Modifier l\'événement';
+      $('ev-nom').value = ev.nom || '';
+      $('ev-date').value = ev.date || '';
+      $('ev-lieu').value = ev.lieu || '';
+      $('ev-video').value = ev.video_url || '';
+    } else {
+      $('modal-event-title').textContent = 'Nouvel événement';
+      ['ev-nom','ev-date','ev-lieu','ev-video'].forEach(i => $(i).value = '');
+    }
+    show('modal-event');
+  }
+  $('btn-new-event').onclick = () => openEventModal();
+  $('btn-new-event-2').onclick = () => openEventModal();
+  $('btn-cancel-event').onclick = () => hide('modal-event');
+  $('btn-save-event').onclick = async () => {
+    const nom = $('ev-nom').value.trim();
+    const date = $('ev-date').value;
+    if (!nom || !date) { toast('Nom et date requis', 'error'); return; }
+    const data = {
+      nom, date,
+      lieu: $('ev-lieu').value.trim(),
+      video_url: $('ev-video').value.trim(),
+    };
+    try {
+      if (editingEventId) {
+        await update(ref(db, 'bons_kdo/evenements/' + editingEventId), data);
+        toast('Événement mis à jour', 'success');
+      } else {
+        const evRef = push(ref(db, 'bons_kdo/evenements'));
+        await set(evRef, { ...data, created_at: Date.now(), created_by: state.user.email });
+        state.currentEventId = evRef.key;
+        toast('Événement créé', 'success');
+      }
+      hide('modal-event');
+    } catch (e) {
+      toast('Erreur : ' + e.message, 'error');
+    }
+  };
+
+  // ── EVENTS LIST ──────────────────────────────────
+  function renderEventsList() {
+    const list = $('events-list');
+    const events = Object.entries(state.evenements);
+    if (!events.length) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">📅</div><div>Aucun événement. Crée le premier ci-dessous.</div></div>';
+      return;
+    }
+    events.sort((a,b) => (b[1].date || '').localeCompare(a[1].date || ''));
+    list.innerHTML = events.map(([id, ev]) => {
+      const bonsCount = Object.values(state.bons).filter(b => b.evenement_id === id).length;
+      return `<div style="padding:16px 18px;background:rgba(26,26,100,0.4);border:1px solid var(--bd);border-radius:12px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:15px">${ev.nom}</div>
+          <div style="color:var(--dim);font-size:12px;margin-top:3px">${fmtDate(ev.date)}${ev.lieu ? ' · ' + ev.lieu : ''} · ${bonsCount} bon${bonsCount > 1 ? 's' : ''}</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" data-action="edit-ev" data-id="${id}">✏️ Modifier</button>
+        <button class="btn btn-secondary btn-sm" data-action="goto-ev" data-id="${id}">→ Voir les bons</button>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('[data-action]').forEach(b => {
+      b.onclick = () => {
+        const act = b.dataset.action;
+        const id = b.dataset.id;
+        if (act === 'edit-ev') openEventModal(id);
+        if (act === 'goto-ev') {
+          state.currentEventId = id;
+          $('event-selector').value = id;
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelector('.tab[data-view="bons"]').classList.add('active');
+          hide('view-evenements'); show('view-bons');
+          render();
+        }
+      };
+    });
+  }
+
+  // ── RENDER ───────────────────────────────────────
+  function render() {
+    const evId = state.currentEventId;
+    $('btn-import-csv').disabled = !evId;
+    $('btn-send-all').disabled = !evId;
+
+    if (!evId) {
+      $('stats-grid').innerHTML = '';
+      hide('progress-card');
+      $('table-wrap').innerHTML = '<div class="empty-state"><div class="icon">🎫</div><div>Sélectionne un événement pour voir ses bons cadeaux.</div></div>';
+      return;
+    }
+
+    const allBons = Object.entries(state.bons)
+      .map(([id,b]) => ({id, ...b}))
+      .filter(b => b.evenement_id === evId);
+
+    renderStats(allBons);
+    renderProgress(allBons);
+    renderTable(allBons);
+
+    // Update bouton envoi
+    const enAttente = allBons.filter(b => effectiveStatus(b) === 'en_attente').length;
+    $('btn-send-all').textContent = enAttente > 0
+      ? `✉️ Envoyer ${enAttente} bon${enAttente > 1 ? 's' : ''} en attente`
+      : '✉️ Tout est envoyé';
+    $('btn-send-all').disabled = enAttente === 0;
+  }
+
+  function renderStats(bons) {
+    const counts = { total:bons.length, en_attente:0, emis:0, utilise:0, annule:0, expire:0 };
+    bons.forEach(b => { counts[effectiveStatus(b)] = (counts[effectiveStatus(b)] || 0) + 1; });
+    const pct = (n) => bons.length > 0 ? Math.round(100 * n / bons.length) + '%' : '—';
+    $('stats-grid').innerHTML = `
+      <div class="stat-card total"><div class="stat-label">Total</div><div class="stat-value">${counts.total}</div></div>
+      <div class="stat-card attente"><div class="stat-label">En attente</div><div class="stat-value">${counts.en_attente}</div><div class="stat-pct">${pct(counts.en_attente)}</div></div>
+      <div class="stat-card emis"><div class="stat-label">Émis</div><div class="stat-value">${counts.emis}</div><div class="stat-pct">${pct(counts.emis)}</div></div>
+      <div class="stat-card utilise"><div class="stat-label">Utilisés</div><div class="stat-value">${counts.utilise}</div><div class="stat-pct">${pct(counts.utilise)}</div></div>
+      <div class="stat-card expire"><div class="stat-label">Expirés</div><div class="stat-value">${counts.expire}</div><div class="stat-pct">${pct(counts.expire)}</div></div>
+      <div class="stat-card annule"><div class="stat-label">Annulés</div><div class="stat-value">${counts.annule}</div><div class="stat-pct">${pct(counts.annule)}</div></div>
+    `;
+  }
+
+  function renderProgress(bons) {
+    if (!bons.length) { hide('progress-card'); return; }
+    show('progress-card');
+    const counts = { en_attente:0, emis:0, utilise:0, annule:0, expire:0 };
+    bons.forEach(b => counts[effectiveStatus(b)]++);
+    const total = bons.length;
+    const segments = [
+      { k:'utilise', label:'Utilisés', n:counts.utilise },
+      { k:'emis', label:'Émis', n:counts.emis },
+      { k:'attente', label:'En attente', n:counts.en_attente },
+      { k:'annule', label:'Annulés', n:counts.annule },
+      { k:'expire', label:'Expirés', n:counts.expire },
+    ].filter(s => s.n > 0);
+    $('progress-bar').innerHTML = segments.map(s =>
+      `<div class="progress-seg ${s.k}" style="width:${100 * s.n / total}%" title="${s.label} : ${s.n}">${s.n >= total * 0.05 ? s.n : ''}</div>`
+    ).join('');
+    $('progress-summary').textContent = `${counts.utilise} / ${total} utilisés`;
+  }
+
+  function renderTable(allBons) {
+    let bons = allBons;
+    if (state.filter !== 'all') {
+      bons = bons.filter(b => effectiveStatus(b) === state.filter);
+    }
+    if (state.search) {
+      const q = state.search.toLowerCase();
+      bons = bons.filter(b =>
+        (b.nom || '').toLowerCase().includes(q) ||
+        (b.co || '').toLowerCase().includes(q) ||
+        (b.email || '').toLowerCase().includes(q) ||
+        (b.code_unique || '').toLowerCase().includes(q) ||
+        (b.lot || '').toLowerCase().includes(q)
+      );
+    }
+    bons.sort((a,b) => {
+      let va = a[state.sortKey], vb = b[state.sortKey];
+      if (state.sortKey === 'created_at' || state.sortKey === 'emis_at' || state.sortKey === 'utilise_at') {
+        va = va || 0; vb = vb || 0;
+      } else {
+        va = (va || '').toString().toLowerCase();
+        vb = (vb || '').toString().toLowerCase();
+      }
+      if (va < vb) return state.sortDir === 'asc' ? -1 : 1;
+      if (va > vb) return state.sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    if (!bons.length) {
+      $('table-wrap').innerHTML = `<div class="empty-state"><div class="icon">🔍</div><div>Aucun bon ne correspond aux filtres.</div></div>`;
+      return;
+    }
+
+    const colSort = (key, label) => {
+      const cls = state.sortKey === key ? (state.sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc') : '';
+      return `<th class="sortable ${cls}" data-sort="${key}">${label}</th>`;
+    };
+
+    $('table-wrap').innerHTML = `
+      <div class="table-scroll">
+      <table>
+        <thead><tr>
+          ${colSort('nom','Nom')}
+          <th>Société</th>
+          <th>Lot</th>
+          <th>Type</th>
+          ${colSort('statut','Statut')}
+          <th>Code</th>
+          ${colSort('emis_at','Envoyé')}
+          ${colSort('date_validite','Validité')}
+          <th></th>
+        </tr></thead>
+        <tbody>
+          ${bons.map(b => {
+            const status = effectiveStatus(b);
+            return `<tr data-id="${b.id}">
+              <td class="nom-cell">${b.nom || '—'}<div class="co-cell" style="display:none">${b.email || ''}</div></td>
+              <td class="co-cell">${b.co || '—'}</td>
+              <td class="lot-cell" title="${(b.lot||'').replace(/"/g,'&quot;')}">${b.lot || '—'}</td>
+              <td><span class="badge ${b.type || 'standard'}">${b.type || 'standard'}</span></td>
+              <td><span class="badge ${status}">${statusLabel(status)}</span></td>
+              <td class="code-cell">${b.code_unique || '—'}</td>
+              <td class="date-cell">${b.emis_at ? fmtDateTime(b.emis_at) : '—'}</td>
+              <td class="date-cell">${fmtDate(b.date_validite)}</td>
+              <td><button class="btn btn-secondary btn-sm" data-id="${b.id}" data-act="open">→</button></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+      </div>
+    `;
+    $('table-wrap').querySelectorAll('tbody tr').forEach(tr => {
+      tr.onclick = () => openDrawer(tr.dataset.id);
+    });
+    $('table-wrap').querySelectorAll('th[data-sort]').forEach(th => {
+      th.onclick = (e) => {
+        e.stopPropagation();
+        const k = th.dataset.sort;
+        if (state.sortKey === k) state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+        else { state.sortKey = k; state.sortDir = 'desc'; }
+        render();
+      };
+    });
+  }
+
+  function statusLabel(s) {
+    return { en_attente:'En attente', emis:'Émis', utilise:'Utilisé', annule:'Annulé', expire:'Expiré' }[s] || s;
+  }
+
+  // ── SEARCH + FILTERS ─────────────────────────────
+  $('search-input').addEventListener('input', e => {
+    state.search = e.target.value;
+    render();
+  });
+  document.querySelectorAll('#filter-chips .chip').forEach(c => {
+    c.onclick = () => {
+      document.querySelectorAll('#filter-chips .chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+      state.filter = c.dataset.filter;
+      render();
+    };
+  });
+
+  // ── DRAWER ───────────────────────────────────────
+  let editingBonId = null;
+  function openDrawer(id) {
+    const bon = state.bons[id];
+    if (!bon) return;
+    editingBonId = id;
+    const status = effectiveStatus({ ...bon, id });
+    const ev = state.evenements[bon.evenement_id] || {};
+    $('drawer-body').innerHTML = `
+      <div class="drawer-section">
+        <div class="drawer-section-title">📋 Statut</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="badge ${status}">${statusLabel(status)}</span>
+          <span class="badge ${bon.type || 'standard'}">${bon.type || 'standard'}</span>
+        </div>
+      </div>
+
+      <div class="drawer-section">
+        <div class="drawer-section-title">👤 Destinataire</div>
+        <div class="drawer-grid">
+          <div class="form-row"><label>Nom et prénom</label><input id="d-nom" value="${(bon.nom||'').replace(/"/g,'&quot;')}"></div>
+          <div class="form-row"><label>Société</label><input id="d-co" value="${(bon.co||'').replace(/"/g,'&quot;')}"></div>
+        </div>
+        <div class="form-row" style="margin-top:12px"><label>Email</label><input id="d-email" type="email" value="${(bon.email||'').replace(/"/g,'&quot;')}"></div>
+      </div>
+
+      <div class="drawer-section">
+        <div class="drawer-section-title">🎁 Lot</div>
+        <div class="form-row"><label>Description du lot</label><textarea id="d-lot" rows="2" style="width:100%;padding:11px 14px;background:rgba(10,10,62,0.7);border:1px solid var(--bd);border-radius:10px;color:#fff;font-size:14px;resize:vertical">${bon.lot||''}</textarea></div>
+        <div class="drawer-grid" style="margin-top:12px">
+          <div class="form-row">
+            <label>Type</label>
+            <select id="d-type">
+              <option value="standard"${bon.type === 'standard' ? ' selected' : ''}>Standard</option>
+              <option value="vip"${bon.type === 'vip' ? ' selected' : ''}>VIP</option>
+              <option value="consolation"${bon.type === 'consolation' ? ' selected' : ''}>Consolation</option>
+            </select>
+          </div>
+          <div class="form-row"><label>Date validité</label><input id="d-validite" type="date" value="${bon.date_validite||''}"></div>
+        </div>
+      </div>
+
+      <div class="drawer-section">
+        <div class="drawer-section-title">📊 Métadonnées</div>
+        <div class="drawer-meta">
+          <strong>Code unique :</strong> <span style="font-family:monospace;color:var(--lime)">${bon.code_unique || '—'}</span><br>
+          <strong>Événement :</strong> ${ev.nom || bon.evenement_id}<br>
+          <strong>Créé :</strong> ${fmtDateTime(bon.created_at)}<br>
+          <strong>Envoyé :</strong> ${bon.emis_at ? fmtDateTime(bon.emis_at) : '—'}<br>
+          <strong>Utilisé :</strong> ${bon.utilise_at ? fmtDateTime(bon.utilise_at) : '—'}<br>
+          ${bon.mailjet_id ? '<strong>Mailjet ID :</strong> <span style="font-family:monospace;font-size:11px">' + bon.mailjet_id + '</span><br>' : ''}
+        </div>
+      </div>
+
+      <div class="drawer-actions">
+        <button class="btn btn-primary" id="d-save">💾 Enregistrer</button>
+        ${bon.statut !== 'utilise' ? `<button class="btn btn-cyan" id="d-send">${bon.statut === 'emis' ? '📧 Renvoyer le mail' : '✉️ Envoyer'}</button>` : ''}
+        ${bon.statut !== 'annule' && bon.statut !== 'utilise' ? `<button class="btn btn-secondary" id="d-cancel">🚫 Annuler ce bon</button>` : ''}
+        ${bon.statut === 'annule' ? `<button class="btn btn-secondary" id="d-restore">↩️ Réactiver</button>` : ''}
+        <button class="btn btn-danger" id="d-delete" style="margin-left:auto">🗑️ Supprimer</button>
+      </div>
+    `;
+    $('drawer-overlay').classList.add('open');
+    $('drawer').classList.add('open');
+
+    $('d-save').onclick = saveBon;
+    if ($('d-send')) $('d-send').onclick = () => sendOne(id);
+    if ($('d-cancel')) $('d-cancel').onclick = () => updateStatut(id, 'annule', 'Bon annulé');
+    if ($('d-restore')) $('d-restore').onclick = () => updateStatut(id, 'en_attente', 'Bon réactivé');
+    $('d-delete').onclick = () => deleteBon(id);
+  }
+  function closeDrawer() {
+    $('drawer-overlay').classList.remove('open');
+    $('drawer').classList.remove('open');
+    editingBonId = null;
+  }
+  $('drawer-close').onclick = closeDrawer;
+  $('drawer-overlay').onclick = closeDrawer;
+
+  async function saveBon() {
+    if (!editingBonId) return;
+    const data = {
+      nom: $('d-nom').value.trim(),
+      co: $('d-co').value.trim(),
+      email: $('d-email').value.trim(),
+      lot: $('d-lot').value.trim(),
+      type: $('d-type').value,
+      date_validite: $('d-validite').value,
+    };
+    try {
+      await update(ref(db, 'bons_kdo/bons/' + editingBonId), data);
+      toast('Bon mis à jour', 'success');
+      closeDrawer();
+    } catch (e) {
+      toast('Erreur : ' + e.message, 'error');
+    }
+  }
+
+  async function updateStatut(id, statut, msg) {
+    try {
+      await update(ref(db, 'bons_kdo/bons/' + id), { statut });
+      toast(msg, 'success');
+      closeDrawer();
+    } catch (e) {
+      toast('Erreur : ' + e.message, 'error');
+    }
+  }
+
+  async function deleteBon(id) {
+    if (!confirm('Supprimer définitivement ce bon ? Cette action est irréversible.')) return;
+    try {
+      await remove(ref(db, 'bons_kdo/bons/' + id));
+      toast('Bon supprimé', 'success');
+      closeDrawer();
+    } catch (e) {
+      toast('Erreur : ' + e.message, 'error');
+    }
+  }
+
+  async function sendOne(id) {
+    const bon = state.bons[id];
+    if (!bon) return;
+    const btn = $('d-send');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Envoi…';
+    try {
+      const r = await sendBonEmail({ evenement_id: bon.evenement_id, bon_id: id });
+      toast('Mail envoyé à ' + bon.email, 'success');
+      closeDrawer();
+    } catch (e) {
+      toast('Erreur : ' + e.message, 'error');
+      btn.disabled = false;
+      btn.textContent = '✉️ Envoyer';
+    }
+  }
+
+  // ── SEND ALL ─────────────────────────────────────
+  $('btn-send-all').onclick = () => {
+    const evId = state.currentEventId;
+    if (!evId) return;
+    const enAttente = Object.entries(state.bons)
+      .filter(([_,b]) => b.evenement_id === evId && effectiveStatus({...b}) === 'en_attente');
+    if (!enAttente.length) { toast('Aucun bon en attente', 'error'); return; }
+    $('send-all-sub').textContent = `${enAttente.length} bon${enAttente.length > 1 ? 's' : ''} vont être envoyés à leurs destinataires.`;
+    show('modal-send-all');
+  };
+  $('btn-cancel-send-all').onclick = () => hide('modal-send-all');
+  $('btn-confirm-send-all').onclick = async () => {
+    hide('modal-send-all');
+    const evId = state.currentEventId;
+    const enAttente = Object.entries(state.bons)
+      .filter(([_,b]) => b.evenement_id === evId && effectiveStatus({...b}) === 'en_attente');
+    const overlay = document.createElement('div');
+    overlay.className = 'loading-overlay';
+    overlay.innerHTML = '<span class="spinner"></span><span id="send-progress">Envoi 0 / ' + enAttente.length + '</span>';
+    document.body.appendChild(overlay);
+    let ok = 0, fail = 0;
+    for (let i = 0; i < enAttente.length; i++) {
+      const [id, bon] = enAttente[i];
+      try {
+        await sendBonEmail({ evenement_id: evId, bon_id: id });
+        ok++;
+      } catch (e) {
+        console.error('Send fail for', bon.email, e);
+        fail++;
+      }
+      $('send-progress').textContent = `Envoi ${i+1} / ${enAttente.length}…`;
+    }
+    overlay.remove();
+    toast(`Envoi terminé : ${ok} OK, ${fail} échec${fail !== 1 ? 's' : ''}`, fail === 0 ? 'success' : 'error');
+  };
+
+  // ── CSV IMPORT ───────────────────────────────────
+  let csvParsedRows = [];
+  $('btn-import-csv').onclick = () => {
+    csvParsedRows = [];
+    $('csv-file').value = '';
+    $('csv-preview-zone').innerHTML = '';
+    $('btn-confirm-csv').disabled = true;
+    show('modal-csv');
+  };
+  $('btn-cancel-csv').onclick = () => hide('modal-csv');
+
+  $('csv-file').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const text = await file.text();
+    const rows = csvParse(text);
+    // Trouver l'index de la ligne d'en-tête (qui contient "Nom et Prénom" ou similaire)
+    let headerIdx = -1;
+    for (let i = 0; i < rows.length; i++) {
+      const joined = rows[i].join('|').toLowerCase();
+      if (joined.includes('nom') && joined.includes('email') && joined.includes('lot')) {
+        headerIdx = i; break;
+      }
+    }
+    if (headerIdx === -1) {
+      $('csv-preview-zone').innerHTML = '<div style="color:var(--red);padding:14px;background:rgba(239,68,68,0.1);border-radius:10px;margin-top:14px">Impossible de trouver les colonnes attendues (Nom, Email, Lot, Statut).</div>';
+      return;
+    }
+    const headers = rows[headerIdx].map(h => h.toLowerCase().trim());
+    const colNom = headers.findIndex(h => h.includes('nom') && h.includes('prénom') || h === 'nom et prénom');
+    const colCo = headers.findIndex(h => h.includes('entreprise') || h.includes('société') || h.includes('societe'));
+    const colEmail = headers.findIndex(h => h.includes('email') || h.includes('mail'));
+    const colStatut = headers.findIndex(h => h === 'statut');
+    const colLot = headers.findIndex(h => h === 'lot');
+
+    csvParsedRows = rows.slice(headerIdx + 1)
+      .filter(r => r.length >= 3)
+      .map(r => {
+        const nom = (r[colNom >= 0 ? colNom : 0] || '').trim();
+        const co = (r[colCo >= 0 ? colCo : 1] || '').trim();
+        const email = (r[colEmail >= 0 ? colEmail : 2] || '').trim().replace(/\s+/g,'');
+        const statut = (r[colStatut >= 0 ? colStatut : 4] || '').trim().toLowerCase();
+        const lot = (r[colLot >= 0 ? colLot : 5] || '').trim();
+        // Détecter le type basé sur le lot
+        let type = 'standard';
+        if (lot.toLowerCase().includes('team building')) type = 'vip';
+        return {
+          nom, co, email, statut, lot, type,
+          include: !!(nom && email && lot),
+          warn: !email.includes('@') || !email.includes('.'),
+        };
+      });
+
+    const valid = csvParsedRows.filter(r => r.include).length;
+    $('csv-preview-zone').innerHTML = `
+      <div style="margin-top:14px;padding:12px;background:rgba(184,255,60,0.1);border:1px solid rgba(184,255,60,0.3);border-radius:10px;font-size:13px">
+        ${valid} ligne${valid > 1 ? 's' : ''} valide${valid > 1 ? 's' : ''} sur ${csvParsedRows.length} (lignes sans nom/email/lot ignorées).
+      </div>
+      <div class="csv-preview"><table>
+        <thead><tr><th>Inclure</th><th>Nom</th><th>Société</th><th>Email</th><th>Lot</th><th>Type</th></tr></thead>
+        <tbody>
+          ${csvParsedRows.map((r,i) => `<tr class="${r.include ? '' : 'row-skip'}">
+            <td><input type="checkbox" data-idx="${i}" ${r.include ? 'checked' : ''}></td>
+            <td>${r.nom || '—'}</td>
+            <td>${r.co || '—'}</td>
+            <td style="color:${r.warn ? 'var(--orange)' : 'inherit'}">${r.email || '—'}${r.warn ? ' ⚠️' : ''}</td>
+            <td style="font-size:11px;color:var(--soft)">${(r.lot || '—').slice(0,40)}${r.lot && r.lot.length > 40 ? '…' : ''}</td>
+            <td>
+              <select class="csv-row-type-select" data-idx="${i}">
+                <option value="standard"${r.type === 'standard' ? ' selected' : ''}>standard</option>
+                <option value="vip"${r.type === 'vip' ? ' selected' : ''}>vip</option>
+                <option value="consolation"${r.type === 'consolation' ? ' selected' : ''}>consolation</option>
+              </select>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>
+    `;
+    $('btn-confirm-csv').disabled = valid === 0;
+    // Bind row checkbox / type
+    $('csv-preview-zone').querySelectorAll('input[type=checkbox][data-idx]').forEach(cb => {
+      cb.onchange = (e) => { csvParsedRows[+e.target.dataset.idx].include = e.target.checked; };
+    });
+    $('csv-preview-zone').querySelectorAll('select[data-idx]').forEach(sel => {
+      sel.onchange = (e) => { csvParsedRows[+e.target.dataset.idx].type = e.target.value; };
+    });
+  });
+
+  $('btn-confirm-csv').onclick = async () => {
+    const evId = state.currentEventId;
+    if (!evId) return;
+    const ev = state.evenements[evId];
+    const toCreate = csvParsedRows.filter(r => r.include);
+    if (!toCreate.length) return;
+    $('btn-confirm-csv').disabled = true;
+    $('btn-confirm-csv').innerHTML = '<span class="spinner"></span>Création…';
+    let ok = 0;
+    for (const r of toCreate) {
+      const newRef = push(ref(db, 'bons_kdo/bons'));
+      const dateValidite = r.type === 'vip' ? '2026-09-30' : '2026-06-30';
+      await set(newRef, {
+        nom: r.nom, co: r.co, email: r.email, lot: r.lot, type: r.type,
+        evenement_id: evId,
+        code_unique: genCode(),
+        statut: 'en_attente',
+        date_validite: dateValidite,
+        created_at: Date.now(),
+        created_by: state.user.email,
+      });
+      ok++;
+    }
+    hide('modal-csv');
+    $('btn-confirm-csv').disabled = false;
+    $('btn-confirm-csv').textContent = 'Créer les bons';
+    toast(`${ok} bon${ok > 1 ? 's' : ''} créé${ok > 1 ? 's' : ''}`, 'success');
+  };
+
 </script>
-
 </body>
 </html>
